@@ -1,6 +1,5 @@
 #include "raylib.h"                 // Declares module functions
 #include "rlgl.h"                   // OpenGL abstraction layer to OpenGL 1.1, 3.3+ or ES2
-#include "stb_text/stb_text.h"
 #include "tracelog.h"
 
 #if defined(_WIN32)

@@ -1,6 +1,5 @@
-#include "raylib.h"             // Declares module functions
 #include "utils.h"         // Defines module configuration flags
-#include "rlgl.h"               // OpenGL abstraction layer to OpenGL 1.1, 3.3 or ES2
+#include "stb_text/stb_text.h"
 #include <stdlib.h>             // Required for: malloc(), free()
 #include <string.h>             // Required for: strlen() [Used in ImageTextEx()]
 #include <math.h>               // Required for: fabsf()

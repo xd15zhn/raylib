@@ -3,11 +3,6 @@
 #include <time.h>                   // Required for: time() [Used in InitTimer()]
 #include <math.h>                   // Required for: tan() [Used in BeginMode3D()], atan2f() [Used in LoadVrStereoConfig()]
 
-// Use busy wait loop for timing sync, if not defined, a high-resolution timer is setup and used
-//#define SUPPORT_BUSY_WAIT_LOOP      1
-// Use a partial-busy wait loop, in this case frame sleeps for most of the time, but then runs a busy loop at the end for accuracy
-#define SUPPORT_PARTIALBUSY_WAIT_LOOP
-
 #define GLFW_INCLUDE_NONE       // Disable the standard OpenGL header inclusion on GLFW3
                                 // NOTE: Already provided by rlgl implementation (on glad.h)
 #include "GLFW/glfw3.h"         // GLFW3 library: Windows, OpenGL context and Input management
@@ -83,12 +78,11 @@ typedef struct CoreData {
     struct {
         double current;                     // Current time measure
         double previous;                    // Previous time measure
-        double update;                      // Time measure for frame update
+        double usrcalc;                     // Time measure for user's calculation tasks
         double draw;                        // Time measure for frame draw
         double frame;                       // Time measure for one frame
         double target;                      // Desired time for one frame, if 0 not applied
-        unsigned int frameCounter;          // Frame counter
-    } Time;
+    } Time;                                 // Mesure in seconds
 } CoreData;
 
 static CoreData CORE = { 0 };               // Global CORE state context
@@ -284,62 +278,45 @@ void SetWindowState(unsigned int flags)
         CORE.Window.flags |= FLAG_WINDOW_HIDDEN;
     }
     // State change: FLAG_WINDOW_MINIMIZED
-    if (((CORE.Window.flags & FLAG_WINDOW_MINIMIZED) != (flags & FLAG_WINDOW_MINIMIZED)) && ((flags & FLAG_WINDOW_MINIMIZED) > 0))
-    {
+    if (((CORE.Window.flags & FLAG_WINDOW_MINIMIZED) != (flags & FLAG_WINDOW_MINIMIZED)) && ((flags & FLAG_WINDOW_MINIMIZED) > 0)) {
         //GLFW_ICONIFIED
         MinimizeWindow();       // NOTE: Window state flag updated inside function
     }
-
     // State change: FLAG_WINDOW_MAXIMIZED
-    if (((CORE.Window.flags & FLAG_WINDOW_MAXIMIZED) != (flags & FLAG_WINDOW_MAXIMIZED)) && ((flags & FLAG_WINDOW_MAXIMIZED) > 0))
-    {
+    if (((CORE.Window.flags & FLAG_WINDOW_MAXIMIZED) != (flags & FLAG_WINDOW_MAXIMIZED)) && ((flags & FLAG_WINDOW_MAXIMIZED) > 0)) {
         //GLFW_MAXIMIZED
         MaximizeWindow();       // NOTE: Window state flag updated inside function
     }
-
     // State change: FLAG_WINDOW_UNFOCUSED
-    if (((CORE.Window.flags & FLAG_WINDOW_UNFOCUSED) != (flags & FLAG_WINDOW_UNFOCUSED)) && ((flags & FLAG_WINDOW_UNFOCUSED) > 0))
-    {
+    if (((CORE.Window.flags & FLAG_WINDOW_UNFOCUSED) != (flags & FLAG_WINDOW_UNFOCUSED)) && ((flags & FLAG_WINDOW_UNFOCUSED) > 0)) {
         glfwSetWindowAttrib(CORE.Window.handle, GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
         CORE.Window.flags |= FLAG_WINDOW_UNFOCUSED;
     }
-
     // State change: FLAG_WINDOW_TOPMOST
-    if (((CORE.Window.flags & FLAG_WINDOW_TOPMOST) != (flags & FLAG_WINDOW_TOPMOST)) && ((flags & FLAG_WINDOW_TOPMOST) > 0))
-    {
+    if (((CORE.Window.flags & FLAG_WINDOW_TOPMOST) != (flags & FLAG_WINDOW_TOPMOST)) && ((flags & FLAG_WINDOW_TOPMOST) > 0)) {
         glfwSetWindowAttrib(CORE.Window.handle, GLFW_FLOATING, GLFW_TRUE);
         CORE.Window.flags |= FLAG_WINDOW_TOPMOST;
     }
-
     // State change: FLAG_WINDOW_ALWAYS_RUN
-    if (((CORE.Window.flags & FLAG_WINDOW_ALWAYS_RUN) != (flags & FLAG_WINDOW_ALWAYS_RUN)) && ((flags & FLAG_WINDOW_ALWAYS_RUN) > 0))
-    {
+    if (((CORE.Window.flags & FLAG_WINDOW_ALWAYS_RUN) != (flags & FLAG_WINDOW_ALWAYS_RUN)) && ((flags & FLAG_WINDOW_ALWAYS_RUN) > 0)) {
         CORE.Window.flags |= FLAG_WINDOW_ALWAYS_RUN;
     }
-
     // The following states can not be changed after window creation
-
     // State change: FLAG_WINDOW_TRANSPARENT
-    if (((CORE.Window.flags & FLAG_WINDOW_TRANSPARENT) != (flags & FLAG_WINDOW_TRANSPARENT)) && ((flags & FLAG_WINDOW_TRANSPARENT) > 0))
-    {
+    if (((CORE.Window.flags & FLAG_WINDOW_TRANSPARENT) != (flags & FLAG_WINDOW_TRANSPARENT)) && ((flags & FLAG_WINDOW_TRANSPARENT) > 0)) {
         TRACELOG(LOG_WARNING, "WINDOW: Framebuffer transparency can only by configured before window initialization");
     }
-
     // State change: FLAG_WINDOW_HIGHDPI
-    if (((CORE.Window.flags & FLAG_WINDOW_HIGHDPI) != (flags & FLAG_WINDOW_HIGHDPI)) && ((flags & FLAG_WINDOW_HIGHDPI) > 0))
-    {
+    if (((CORE.Window.flags & FLAG_WINDOW_HIGHDPI) != (flags & FLAG_WINDOW_HIGHDPI)) && ((flags & FLAG_WINDOW_HIGHDPI) > 0)) {
         TRACELOG(LOG_WARNING, "WINDOW: High DPI can only by configured before window initialization");
     }
-
     // State change: FLAG_MSAA_4X_HINT
-    if (((CORE.Window.flags & FLAG_MSAA_4X_HINT) != (flags & FLAG_MSAA_4X_HINT)) && ((flags & FLAG_MSAA_4X_HINT) > 0))
-    {
+    if (((CORE.Window.flags & FLAG_MSAA_4X_HINT) != (flags & FLAG_MSAA_4X_HINT)) && ((flags & FLAG_MSAA_4X_HINT) > 0)) {
         TRACELOG(LOG_WARNING, "WINDOW: MSAA can only by configured before window initialization");
     }
 
     // State change: FLAG_INTERLACED_HINT
-    if (((CORE.Window.flags & FLAG_INTERLACED_HINT) != (flags & FLAG_INTERLACED_HINT)) && ((flags & FLAG_INTERLACED_HINT) > 0))
-    {
+    if (((CORE.Window.flags & FLAG_INTERLACED_HINT) != (flags & FLAG_INTERLACED_HINT)) && ((flags & FLAG_INTERLACED_HINT) > 0)) {
         TRACELOG(LOG_WARNING, "RPI: Interlaced mode can only by configured before window initialization");
     }
 }
@@ -446,14 +423,11 @@ void ClearWindowState(unsigned int flags)
 // NOTE: Image must be in RGBA format, 8bit per channel
 void SetWindowIcon(Image image)
 {
-    if (image.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8A8)
-    {
+    if (image.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8A8) {
         GLFWimage icon[1] = { 0 };
-
         icon[0].width = image.width;
         icon[0].height = image.height;
         icon[0].pixels = (unsigned char *)image.data;
-
         // NOTE 1: We only support one image icon
         // NOTE 2: The specified image data is copied before this function returns
         glfwSetWindowIcon(CORE.Window.handle, 1, icon);
@@ -479,11 +453,8 @@ void SetWindowMonitor(int monitor)
 {
     int monitorCount = 0;
     GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
-
-    if ((monitor >= 0) && (monitor < monitorCount))
-    {
+    if ((monitor >= 0) && (monitor < monitorCount)) {
         TRACELOG(LOG_INFO, "GLFW: Selected fullscreen monitor: [%i] %s", monitor, glfwGetMonitorName(monitors[monitor]));
-
         const GLFWvidmode *mode = glfwGetVideoMode(monitors[monitor]);
         glfwSetWindowMonitor(CORE.Window.handle, monitors[monitor], 0, 0, mode->width, mode->height, mode->refreshRate);
     }
@@ -511,8 +482,6 @@ int GetScreenHeight(void) { return CORE.Window.screen.height; }
 int GetRenderWidth(void) { return CORE.Window.render.width; }
 // Get current screen height which is equal to screen height * dpi scale
 int GetRenderHeight(void) { return CORE.Window.render.height; }
-// Get native window handle
-void *GetWindowHandle(void) { return glfwGetWin32Window(CORE.Window.handle); }
 
 // Get number of monitors
 int GetMonitorCount(void)
@@ -528,35 +497,20 @@ int GetCurrentMonitor(void)
     int monitorCount;
     GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
     GLFWmonitor* monitor = NULL;
-
-    if (monitorCount == 1) // easy out
-        return 0;
-
-    if (IsWindowFullscreen())
-    {
+    if (monitorCount == 1) return 0;
+    if (IsWindowFullscreen()) {
         monitor = glfwGetWindowMonitor(CORE.Window.handle);
-        for (int i = 0; i < monitorCount; i++)
-        {
+        for (int i = 0; i < monitorCount; i++) {
             if (monitors[i] == monitor)
                 return i;
         }
         return 0;
-    }
-    else
-    {
-        int x = 0;
-        int y = 0;
-
+    } else {
+        int x = 0, y = 0;
         glfwGetWindowPos(CORE.Window.handle, &x, &y);
-
-        for (int i = 0; i < monitorCount; i++)
-        {
-            int mx = 0;
-            int my = 0;
-
-            int width = 0;
-            int height = 0;
-
+        for (int i = 0; i < monitorCount; i++) {
+            int mx = 0, my = 0;
+            int width = 0, height = 0;
             monitor = monitors[i];
             glfwGetMonitorWorkarea(monitor, &mx, &my, &width, &height);
             if (x >= mx && x <= (mx + width) && y >= my && y <= (my + height))
@@ -587,7 +541,6 @@ int GetMonitorWidth(int monitor)
     if ((monitor >= 0) && (monitor < monitorCount)) {
         int count = 0;
         const GLFWvidmode *modes = glfwGetVideoModes(monitors[monitor], &count);
-
         // We return the maximum resolution available, the last one in the modes array
         if (count > 0) return modes[count - 1].width;
         else TRACELOG(LOG_WARNING, "GLFW: Failed to find video mode for selected monitor");
@@ -604,7 +557,6 @@ int GetMonitorHeight(int monitor)
     if ((monitor >= 0) && (monitor < monitorCount)) {
         int count = 0;
         const GLFWvidmode *modes = glfwGetVideoModes(monitors[monitor], &count);
-
         // We return the maximum resolution available, the last one in the modes array
         if (count > 0) return modes[count - 1].height;
         else TRACELOG(LOG_WARNING, "GLFW: Failed to find video mode for selected monitor");
@@ -692,9 +644,7 @@ const char *GetMonitorName(int monitor)
     int monitorCount;
     GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
     if ((monitor >= 0) && (monitor < monitorCount))
-    {
         return glfwGetMonitorName(monitors[monitor]);
-    }
     else TRACELOG(LOG_WARNING, "GLFW: Failed to find selected monitor");
     return "";
 }
@@ -710,9 +660,7 @@ void Hide_Cursor(void) {
     CORE.Input.Mouse.cursorHidden = true;
 }
 // Check if cursor is not visible
-bool IsCursorHidden(void) {
-    return CORE.Input.Mouse.cursorHidden;
-}
+bool IsCursorHidden(void) { return CORE.Input.Mouse.cursorHidden; }
 // Enables cursor (unlock cursor)
 void EnableCursor(void) {
     glfwSetInputMode(CORE.Window.handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -738,7 +686,7 @@ void ClearBackground(Color color) {
 // consequently the measure for update vs draw is not accurate (only the total frame time is accurate)
 void BeginDrawing(void) {
     CORE.Time.current = GetTime();      // Number of elapsed seconds since InitTimer()
-    CORE.Time.update = CORE.Time.current - CORE.Time.previous;
+    CORE.Time.usrcalc = CORE.Time.current - CORE.Time.previous;
     CORE.Time.previous = CORE.Time.current;
     rlLoadIdentity();                   // Reset current matrix (modelview)
     rlMultMatrixf(MatrixToFloat(CORE.Window.screenScale)); // Apply screen scaling
@@ -752,19 +700,19 @@ void EndDrawing(void) {
     CORE.Time.current = GetTime();
     CORE.Time.draw = CORE.Time.current - CORE.Time.previous;
     CORE.Time.previous = CORE.Time.current;
-    CORE.Time.frame = CORE.Time.update + CORE.Time.draw;
+    CORE.Time.frame = CORE.Time.usrcalc + CORE.Time.draw;
 
     // Wait for some milliseconds...
     if (CORE.Time.frame < CORE.Time.target)
     {
-        WaitTime((float)(CORE.Time.target - CORE.Time.frame)*1000.0f);
+        double waitTimeTarget = CORE.Time.target - CORE.Time.frame;
+        WaitTime((float)waitTimeTarget*1000.0f);
         CORE.Time.current = GetTime();
-        double waitTime = CORE.Time.current - CORE.Time.previous;
+        double waitTimeReal = CORE.Time.current - CORE.Time.previous;
         CORE.Time.previous = CORE.Time.current;
-        CORE.Time.frame += waitTime;    // Total frame time: update + draw + wait
+        CORE.Time.frame += waitTimeReal;    // Total frame time: usrcalc + draw + wait
     }
     PollInputEvents();      // Poll user events (before next frame update)
-    CORE.Time.frameCounter++;
 }
 
 // Initializes 3D mode with custom camera (3D)
@@ -833,7 +781,6 @@ RLAPI Shader LoadShaderFromMemory(const char *vsCode, const char *fsCode)
     // NOTE: All locations must be reseted to -1 (no location)
     for (int i = 0; i < RL_MAX_SHADER_LOCATIONS; i++) shader.locs[i] = -1;
     shader.id = rlLoadShaderCode(vsCode, fsCode);
-
     // After shader loading, we TRY to set default location names
     if (shader.id > 0) {
         // Get handles to GLSL input attibute locations
@@ -843,21 +790,18 @@ RLAPI Shader LoadShaderFromMemory(const char *vsCode, const char *fsCode)
         shader.locs[SHADER_LOC_VERTEX_NORMAL] = rlGetLocationAttrib(shader.id, RL_DEFAULT_SHADER_ATTRIB_NAME_NORMAL);
         shader.locs[SHADER_LOC_VERTEX_TANGENT] = rlGetLocationAttrib(shader.id, RL_DEFAULT_SHADER_ATTRIB_NAME_TANGENT);
         shader.locs[SHADER_LOC_VERTEX_COLOR] = rlGetLocationAttrib(shader.id, RL_DEFAULT_SHADER_ATTRIB_NAME_COLOR);
-
         // Get handles to GLSL uniform locations (vertex shader)
         shader.locs[SHADER_LOC_MATRIX_MVP] = rlGetLocationUniform(shader.id, RL_DEFAULT_SHADER_UNIFORM_NAME_MVP);
         shader.locs[SHADER_LOC_MATRIX_VIEW] = rlGetLocationUniform(shader.id, RL_DEFAULT_SHADER_UNIFORM_NAME_VIEW);
         shader.locs[SHADER_LOC_MATRIX_PROJECTION] = rlGetLocationUniform(shader.id, RL_DEFAULT_SHADER_UNIFORM_NAME_PROJECTION);
         shader.locs[SHADER_LOC_MATRIX_MODEL] = rlGetLocationUniform(shader.id, RL_DEFAULT_SHADER_UNIFORM_NAME_MODEL);
         shader.locs[SHADER_LOC_MATRIX_NORMAL] = rlGetLocationUniform(shader.id, RL_DEFAULT_SHADER_UNIFORM_NAME_NORMAL);
-
         // Get handles to GLSL uniform locations (fragment shader)
         shader.locs[SHADER_LOC_COLOR_DIFFUSE] = rlGetLocationUniform(shader.id, RL_DEFAULT_SHADER_UNIFORM_NAME_COLOR);
         shader.locs[SHADER_LOC_MAP_DIFFUSE] = rlGetLocationUniform(shader.id, RL_DEFAULT_SHADER_SAMPLER2D_NAME_TEXTURE0);  // SHADER_LOC_MAP_ALBEDO
         shader.locs[SHADER_LOC_MAP_SPECULAR] = rlGetLocationUniform(shader.id, RL_DEFAULT_SHADER_SAMPLER2D_NAME_TEXTURE1); // SHADER_LOC_MAP_METALNESS
         shader.locs[SHADER_LOC_MAP_NORMAL] = rlGetLocationUniform(shader.id, RL_DEFAULT_SHADER_SAMPLER2D_NAME_TEXTURE2);
     }
-
     return shader;
 }
 
@@ -945,11 +889,10 @@ void SetTargetFPS(int fps)
 // NOTE: We calculate an average framerate
 int GetFPS(void)
 {
-    int fps = 0;
     #define FPS_CAPTURE_FRAMES_COUNT    30      // 30 captures
     #define FPS_AVERAGE_TIME_SECONDS   0.5f     // 500 millisecondes
     #define FPS_STEP (FPS_AVERAGE_TIME_SECONDS/FPS_CAPTURE_FRAMES_COUNT)
-
+    int fps = 0;
     static int index = 0;
     static float history[FPS_CAPTURE_FRAMES_COUNT] = { 0 };
     static float average = 0, last = 0;
@@ -1380,27 +1323,12 @@ static void InitTimer(void) { CORE.Time.previous = GetTime(); }
 // Ref: http://www.geisswerks.com/ryan/FAQS/timing.html --> All about timming on Win32!
 void WaitTime(float ms)
 {
-#if defined(SUPPORT_BUSY_WAIT_LOOP)
-    double previousTime = GetTime();
-    double currentTime = 0.0;
-
-    // Busy wait loop
-    while ((currentTime - previousTime) < ms/1000.0f) currentTime = GetTime();
-#else
-    #if defined(SUPPORT_PARTIALBUSY_WAIT_LOOP)
-        double busyWait = ms*0.05;     // NOTE: We are using a busy wait of 5% of the time
-        ms -= (float)busyWait;
-    #endif
-        Sleep((unsigned int)ms);
-
-    #if defined(SUPPORT_PARTIALBUSY_WAIT_LOOP)
-        double previousTime = GetTime();
-        double currentTime = 0.0;
-
-        // Partial busy wait loop (only a fraction of the total wait time)
-        while ((currentTime - previousTime) < busyWait/1000.0f) currentTime = GetTime();
-    #endif
-#endif
+    double previousTime = glfwGetTime();
+    Sleep((unsigned int)(ms * 0.5f + 0.5f));
+    ms *= 0.001f;
+    double currentTime;
+    do { currentTime = glfwGetTime(); }
+    while ((currentTime - previousTime) < ms);
 }
 
 // Swap back buffer with front buffer (screen drawing)

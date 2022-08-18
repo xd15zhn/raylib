@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(raylib VERSION 1.1.0)
+project(raylib VERSION 1.1.1)
 set(CMAKE_BUILD_TYPE release)
 
 message(STATUS "project name: ${CMAKE_PROJECT_NAME}")
