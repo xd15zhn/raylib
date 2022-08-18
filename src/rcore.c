@@ -149,6 +149,7 @@ void InitGraph(int width, int height, const char *title)
     if ((CORE.Window.flags & FLAG_WINDOW_HIGHDPI) > 0)
         SetTextureFilter(GetFontDefault().texture, TEXTURE_FILTER_BILINEAR);
     SetMousePosition((float)width/2.0f+0.5f, (float)height/2.0f+0.5f);
+    MMRESULT result = timeBeginPeriod(10);
 }
 
 // Close window and unload OpenGL context
@@ -159,6 +160,7 @@ void CloseGraph(void)
     glfwDestroyWindow(CORE.Window.handle);
     glfwTerminate();
     CORE.Window.ready = false;
+    timeEndPeriod(10);
     TRACELOG(LOG_INFO, "Window closed successfully");
 }
 
@@ -1319,12 +1321,10 @@ static void InitTimer(void) { CORE.Time.previous = GetTime(); }
 // Wait for some milliseconds (stop program execution)
 // NOTE: Sleep() granularity could be around 10 ms, it means, Sleep() could
 // take longer than expected... for that reason we use the busy wait loop
-// Ref: http://stackoverflow.com/questions/43057578/c-programming-win32-games-sleep-taking-longer-than-expected
-// Ref: http://www.geisswerks.com/ryan/FAQS/timing.html --> All about timming on Win32!
 void WaitTime(float ms)
 {
     double previousTime = glfwGetTime();
-    Sleep((unsigned int)(ms * 0.5f + 0.5f));
+    Sleep((unsigned int)(ms * 0.95f + 0.5f));
     ms *= 0.001f;
     double currentTime;
     do { currentTime = glfwGetTime(); }

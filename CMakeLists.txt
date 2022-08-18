@@ -47,6 +47,7 @@ target_include_directories(${CMAKE_PROJECT_NAME}
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PUBLIC @CMAKE_PREFIX_PATH@lib/libglfw3.a
     PUBLIC ${tracelog_LIBS}
+    winmm
 )
 
 include(CMakePackageConfigHelpers)

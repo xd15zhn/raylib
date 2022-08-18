@@ -4,5 +4,6 @@ set(raylib_LIBS
     @CMAKE_PREFIX_PATH@lib/libraylib.a
     @CMAKE_PREFIX_PATH@lib/libglfw3.a
     @tracelog_LIBS@
+    winmm
 )
 set(raylib_INCLUDE_DIRS @CMAKE_PREFIX_PATH@include/)
