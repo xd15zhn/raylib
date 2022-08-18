@@ -149,7 +149,6 @@ void InitGraph(int width, int height, const char *title)
     if ((CORE.Window.flags & FLAG_WINDOW_HIGHDPI) > 0)
         SetTextureFilter(GetFontDefault().texture, TEXTURE_FILTER_BILINEAR);
     SetMousePosition((float)width/2.0f+0.5f, (float)height/2.0f+0.5f);
-    MMRESULT result = timeBeginPeriod(10);
 }
 
 // Close window and unload OpenGL context
@@ -160,7 +159,7 @@ void CloseGraph(void)
     glfwDestroyWindow(CORE.Window.handle);
     glfwTerminate();
     CORE.Window.ready = false;
-    timeEndPeriod(10);
+    timeEndPeriod(1);
     TRACELOG(LOG_INFO, "Window closed successfully");
 }
 
@@ -708,7 +707,7 @@ void EndDrawing(void) {
     if (CORE.Time.frame < CORE.Time.target)
     {
         double waitTimeTarget = CORE.Time.target - CORE.Time.frame;
-        WaitTime((float)waitTimeTarget*1000.0f);
+        WaitTime((float)waitTimeTarget);
         CORE.Time.current = GetTime();
         double waitTimeReal = CORE.Time.current - CORE.Time.previous;
         CORE.Time.previous = CORE.Time.current;
@@ -1316,19 +1315,21 @@ static void SetupFramebuffer(int width, int height)
 }
 
 // Initialize hi-resolution timer. Get time as double
-static void InitTimer(void) { CORE.Time.previous = GetTime(); }
+static void InitTimer(void) {
+    MMRESULT result = timeBeginPeriod(1);
+    CORE.Time.previous = GetTime();
+}
 
 // Wait for some milliseconds (stop program execution)
 // NOTE: Sleep() granularity could be around 10 ms, it means, Sleep() could
 // take longer than expected... for that reason we use the busy wait loop
-void WaitTime(float ms)
+void WaitTime(float sec)
 {
     double previousTime = glfwGetTime();
-    Sleep((unsigned int)(ms * 0.95f + 0.5f));
-    ms *= 0.001f;
+    Sleep((unsigned int)(sec * 950.0f + 0.5f));
     double currentTime;
     do { currentTime = glfwGetTime(); }
-    while ((currentTime - previousTime) < ms);
+    while ((currentTime - previousTime) < sec);
 }
 
 // Swap back buffer with front buffer (screen drawing)
