@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(raylib VERSION 1.1.1)
+project(raylib VERSION 1.1.2)
 set(CMAKE_BUILD_TYPE release)
 
 message(STATUS "project name: ${CMAKE_PROJECT_NAME}")
@@ -15,6 +15,7 @@ set(RAYLIB_SOURCES
     ${PROJECT_SOURCE_DIR}/src/rfiles.c
     ${PROJECT_SOURCE_DIR}/src/rlgl.c
     ${PROJECT_SOURCE_DIR}/src/raymath.c
+    ${PROJECT_SOURCE_DIR}/src/rcamera.c
     ${PROJECT_SOURCE_DIR}/src/stb_text/stb_text.c
 )
 
@@ -46,7 +47,6 @@ target_include_directories(${CMAKE_PROJECT_NAME}
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PUBLIC @CMAKE_PREFIX_PATH@lib/libglfw3.a
     PUBLIC ${tracelog_LIBS}
-    PUBLIC opengl32 gdi32 winmm
 )
 
 include(CMakePackageConfigHelpers)

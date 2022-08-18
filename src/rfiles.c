@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "stb_text/stb_text.h"
 #include <stddef.h>
 #include <sys/stat.h>               // Required for: stat() [Used in GetFileModTime()]
 #include <dirent.h>             // Required for: DIR, opendir(), closedir() [Used in GetDirectoryFiles()]
