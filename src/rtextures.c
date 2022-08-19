@@ -1,5 +1,4 @@
 #include "utils.h"         // Defines module configuration flags
-#include "stb_text/stb_text.h"
 #include <stdlib.h>             // Required for: malloc(), free()
 #include <string.h>             // Required for: strlen() [Used in ImageTextEx()]
 #include <math.h>               // Required for: fabsf()

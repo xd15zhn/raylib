@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(raylib VERSION 1.1.2)
+project(raylib VERSION 1.1.3)
 set(CMAKE_BUILD_TYPE release)
 
 message(STATUS "project name: ${CMAKE_PROJECT_NAME}")
@@ -16,7 +16,7 @@ set(RAYLIB_SOURCES
     ${PROJECT_SOURCE_DIR}/src/rlgl.c
     ${PROJECT_SOURCE_DIR}/src/raymath.c
     ${PROJECT_SOURCE_DIR}/src/rcamera.c
-    ${PROJECT_SOURCE_DIR}/src/stb_text/stb_text.c
+    ${PROJECT_SOURCE_DIR}/src/basetext.c
 )
 
 add_library(${CMAKE_PROJECT_NAME} STATIC ${RAYLIB_SOURCES})

@@ -27,6 +27,20 @@
     #define RL_FREE(p)        free(p)
 #endif
 
+// Boolean type
+#if defined(__STDC__) && __STDC_VERSION__ >= 199901L
+    #include <stdbool.h>
+#elif !defined(__cplusplus) && !defined(bool)
+    typedef enum bool { false, true } bool;
+    #define RL_BOOL_TYPE
+#endif
+
+// Support text management functions
+// If not defined, still some functions are supported: TextLength(), TextFormat()
+#define MAX_TEXT_BUFFER_LENGTH      1024        // Size of internal static buffers used on some functions:
+#define MAX_TEXT_UNICODE_CHARS      512        // Maximum number of unicode codepoints: GetCodepoints()
+#define MAX_TEXTSPLIT_COUNT         128        // Maximum number of substrings to split: TextSplit()
+
 // Default shader vertex attribute names to set location points
 // NOTE: When a new shader is loaded, the following locations are tried to be set for convenience
 #define RL_DEFAULT_SHADER_ATTRIB_NAME_POSITION     "vertexPosition"    // Binded by default to shader location: 0

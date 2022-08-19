@@ -1,23 +1,15 @@
 #include "utils.h"
-#include "stb_text/stb_text.h"
-#include <stdlib.h>         // Required for: malloc(), free()
-#include <stdio.h>          // Required for: vsprintf()
-#include <string.h>         // Required for: strcmp(), strstr(), strcpy(), strncpy() [Used in TextReplace()], sscanf() [Used in LoadBMFont()]
-#include <stdarg.h>         // Required for: va_list, va_start(), vsprintf(), va_end() [Used in TextFormat()]
-#include <ctype.h>          // Requried for: toupper(), tolower() [Used in TextToUpper(), TextToLower()]
 
 // Default font provided by raylib
 // NOTE: Default font is loaded on InitGraph() and disposed on CloseGraph() [module: core]
 Font defaultFont = { 0 };
 
 // Load raylib default font
+// NOTE: Using UTF-8 encoding table for Unicode U+0000..U+00FF Basic Latin + Latin-1 Supplement
+// Ref: http://www.utf8-chartable.de/unicode-utf8-table.pl
 void LoadFontDefault(void)
 {
     #define BIT_CHECK(a,b) ((a) & (1u << (b)))
-
-    // NOTE: Using UTF-8 encoding table for Unicode U+0000..U+00FF Basic Latin + Latin-1 Supplement
-    // Ref: http://www.utf8-chartable.de/unicode-utf8-table.pl
-
     defaultFont.glyphCount = 224;   // Number of chars included in our default font
     defaultFont.glyphPadding = 0;   // Characters padding
 
@@ -91,22 +83,17 @@ void LoadFontDefault(void)
     };
 
     // Fill image.data with defaultFontData (convert from bit to pixel!)
-    for (int i = 0, counter = 0; i < imFont.width*imFont.height; i += 32)
-    {
-        for (int j = 31; j >= 0; j--)
-        {
-            if (BIT_CHECK(defaultFontData[counter], j))
-            {
+    for (int i = 0, counter = 0; i < imFont.width*imFont.height; i += 32) {
+        for (int j = 31; j >= 0; j--) {
+            if (BIT_CHECK(defaultFontData[counter], j)) {
                 // NOTE: We are unreferencing data as short, so,
                 // we must consider data as little-endian order (alpha + gray)
                 ((unsigned short *)imFont.data)[i + j] = 0xffff;
             }
             else ((unsigned short *)imFont.data)[i + j] = 0x00ff;
         }
-
         counter++;
     }
-
     defaultFont.texture = LoadTextureFromImage(imFont);
 
     // Reconstruct charSet using charsWidth[], charsHeight, charsDivisor, glyphCount
@@ -116,46 +103,33 @@ void LoadFontDefault(void)
     // NOTE: This memory should be freed at end! --> CloseGraph()
     defaultFont.glyphs = (GlyphInfo *)RL_MALLOC(defaultFont.glyphCount*sizeof(GlyphInfo));
     defaultFont.recs = (rayRect *)RL_MALLOC(defaultFont.glyphCount*sizeof(rayRect));
-
     int currentLine = 0;
     int currentPosX = charsDivisor;
     int testPosX = charsDivisor;
-
-    for (int i = 0; i < defaultFont.glyphCount; i++)
-    {
+    for (int i = 0; i < defaultFont.glyphCount; i++) {
         defaultFont.glyphs[i].value = 32 + i;  // First char is 32
-
         defaultFont.recs[i].x = (float)currentPosX;
         defaultFont.recs[i].y = (float)(charsDivisor + currentLine*(charsHeight + charsDivisor));
         defaultFont.recs[i].width = (float)charsWidth[i];
         defaultFont.recs[i].height = (float)charsHeight;
-
         testPosX += (int)(defaultFont.recs[i].width + (float)charsDivisor);
-
-        if (testPosX >= defaultFont.texture.width)
-        {
+        if (testPosX >= defaultFont.texture.width) {
             currentLine++;
             currentPosX = 2*charsDivisor + charsWidth[i];
             testPosX = currentPosX;
-
             defaultFont.recs[i].x = (float)charsDivisor;
             defaultFont.recs[i].y = (float)(charsDivisor + currentLine*(charsHeight + charsDivisor));
         }
         else currentPosX = testPosX;
-
         // NOTE: On default font character offsets and xAdvance are not required
         defaultFont.glyphs[i].offsetX = 0;
         defaultFont.glyphs[i].offsetY = 0;
         defaultFont.glyphs[i].advanceX = 0;
-
         // Fill character image data from fontClear data
         defaultFont.glyphs[i].image = ImageFromImage(imFont, defaultFont.recs[i]);
     }
-
     UnloadImage(imFont);
-
     defaultFont.baseSize = (int)defaultFont.recs[0].height;
-
     TRACELOG(LOG_INFO, "FONT: Default font loaded successfully (%i glyphs)", defaultFont.glyphCount);
 }
 
@@ -171,31 +145,17 @@ void UnloadFontDefault(void)
 // Get the default font, useful to be used with extended parameters
 Font GetFontDefault() { return defaultFont; }
 
-// Draw current FPS
-// NOTE: Uses default font
-void DrawFPS(int posX, int posY)
-{
-    Color color = LIME; // good fps
-    int fps = GetFPS();
-    if (fps < 30 && fps >= 15) color = ORANGE;  // warning FPS
-    else if (fps < 15) color = RED;    // bad FPS
-    DrawText(TextFormat("%2i FPS", fps), posX, posY, 20, color);
-}
-
 // Draw text (using default font)
 // NOTE: fontSize work like in any drawing program but if fontSize is lower than font-base-size, then font-base-size is used
 // NOTE: chars spacing is proportional to fontSize
 void DrawText(const char *text, int posX, int posY, int fontSize, Color color)
 {
     // Check if default font has been loaded
-    if (GetFontDefault().texture.id != 0)
-    {
+    if (GetFontDefault().texture.id != 0) {
         Vector2 position = { (float)posX, (float)posY };
-
         int defaultFontSize = 10;   // Default Font chars height in pixel
         if (fontSize < defaultFontSize) fontSize = defaultFontSize;
         int spacing = fontSize/defaultFontSize;
-
         DrawTextEx(GetFontDefault(), text, position, (float)fontSize, (float)spacing, color);
     }
 }
@@ -205,43 +165,30 @@ void DrawText(const char *text, int posX, int posY, int fontSize, Color color)
 void DrawTextEx(Font font, const char *text, Vector2 position, float fontSize, float spacing, Color tint)
 {
     if (font.texture.id == 0) font = GetFontDefault();  // Security check in case of not valid font
-
     int size = TextLength(text);    // Total size in bytes of the text, scanned by codepoints in loop
-
     int textOffsetY = 0;            // Offset between lines (on line break '\n')
     float textOffsetX = 0.0f;       // Offset X to next character to draw
-
     float scaleFactor = fontSize/font.baseSize;         // Character quad scaling factor
-
-    for (int i = 0; i < size;)
-    {
+    for (int i = 0; i < size;) {
         // Get next codepoint from byte string and glyph index in font
         int codepointByteCount = 0;
         int codepoint = GetCodepoint(&text[i], &codepointByteCount);
         int index = GetGlyphIndex(font, codepoint);
-
         // NOTE: Normally we exit the decoding sequence as soon as a bad byte is found (and return 0x3f)
         // but we need to draw all of the bad bytes using the '?' symbol moving one byte
         if (codepoint == 0x3f) codepointByteCount = 1;
-
-        if (codepoint == '\n')
-        {
+        if (codepoint == '\n') {
             // NOTE: Fixed line spacing of 1.5 line-height
             // TODO: Support custom line spacing defined by user
             textOffsetY += (int)((font.baseSize + font.baseSize/2)*scaleFactor);
             textOffsetX = 0.0f;
-        }
-        else
-        {
-            if ((codepoint != ' ') && (codepoint != '\t'))
-            {
+        } else {
+            if ((codepoint != ' ') && (codepoint != '\t')) {
                 DrawTextCodepoint(font, codepoint, (Vector2){ position.x + textOffsetX, position.y + textOffsetY }, fontSize, tint);
             }
-
             if (font.glyphs[index].advanceX == 0) textOffsetX += ((float)font.recs[index].width*scaleFactor + spacing);
             else textOffsetX += ((float)font.glyphs[index].advanceX*scaleFactor + spacing);
         }
-
         i += codepointByteCount;   // Move text bytes counter to next codepoint
     }
 }

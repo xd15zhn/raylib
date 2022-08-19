@@ -552,7 +552,6 @@ void Update_Camera(Camera *camera);
 // To avoid that behaviour and control frame processes manually, enable in config.h: SUPPORT_CUSTOM_FRAME_CONTROL
 RLAPI void SwapScreenBuffer(void);                                // Swap back buffer with front buffer (screen drawing)
 RLAPI void PollInputEvents(void);                                 // Register all input events
-RLAPI void WaitTime(float sec);                                    // Wait for some seconds (halt program execution)
 
 // Cursor-related functions
 RLAPI void Show_Cursor(void);                                      // Shows cursor
@@ -589,8 +588,10 @@ RLAPI Vector2 GetWorldToScreen(Vector3 position, Camera camera);  // Get the scr
 RLAPI Vector2 GetWorldToScreenEx(Vector3 position, Camera camera, int width, int height); // Get size position for a 3d world space position
 
 // Timing-related functions
+RLAPI void WaitTime(float sec);                                   // Wait for some seconds (halt program execution)
 RLAPI void SetTargetFPS(int fps);                                 // Set target FPS (maximum)
 RLAPI int GetFPS(void);                                           // Get current FPS
+int GetCPUusage(void);
 RLAPI float GetFrameTime(void);                                   // Get time in seconds for last frame drawn (delta time)
 RLAPI double GetTime(void);                                       // Get elapsed time in seconds since InitGraph()
 
@@ -807,11 +808,36 @@ RLAPI int GetPixelDataSize(int width, int height, int format);              // G
 // Font Loading and Text Drawing Functions (Module: text)
 //------------------------------------------------------------------------------------
 
+// Text strings management functions (no UTF-8 strings, only byte chars)
+// NOTE: Some strings allocate memory internally for returned strings, just be careful!
+int TextCopy(char *dst, const char *src);                                             // Copy one string to another, returns bytes copied
+bool TextIsEqual(const char *text1, const char *text2);                               // Check if two text string are equal
+unsigned int TextLength(const char *text);                                            // Get text length, checks for '\0' ending
+const char *TextFormat(const char *text, ...);                                        // Text formatting with variables (sprintf() style)
+const char *TextSubtext(const char *text, int position, int length);                  // Get a piece of a text string
+char *TextReplace(char *text, const char *replace, const char *by);                   // Replace text string (WARNING: memory must be freed!)
+char *TextInsert(const char *text, const char *insert, int position);                 // Insert text in a position (WARNING: memory must be freed!)
+const char *TextJoin(const char **textList, int count, const char *delimiter);        // Join text strings with delimiter
+const char **TextSplit(const char *text, char delimiter, int *count);                 // Split text into multiple strings
+void TextAppend(char *text, const char *append, int *position);                       // Append text at specific position and move cursor!
+int TextFindIndex(const char *text, const char *find);                                // Find first text occurrence within a string
+const char *TextToUpper(const char *text);                      // Get upper case version of provided string
+const char *TextToLower(const char *text);                      // Get lower case version of provided string
+const char *TextToPascal(const char *text);                     // Get Pascal case notation version of provided string
+int TextToInteger(const char *text);                            // Get integer value from text (negative values not supported)
+
+// Text codepoints management functions (unicode characters)
+int *LoadCodepoints(const char *text, int *count);              // Load all codepoints from a UTF-8 text string, codepoints count returned by parameter
+void UnloadCodepoints(int *codepoints);                         // Unload codepoints data from memory
+int GetCodepointCount(const char *text);                        // Get total number of codepoints in a UTF-8 encoded string
+int GetCodepoint(const char *text, int *bytesProcessed);        // Get next codepoint in a UTF-8 encoded string, 0x3f('?') is returned on failure
+const char *CodepointToUTF8(int codepoint, int *byteSize);      // Encode one codepoint into UTF-8 byte array (array length returned as parameter)
+char *TextCodepointsToUTF8(int *codepoints, int length);        // Encode text as codepoints array into UTF-8 text string (WARNING: memory must be freed!)
+
 // Font loading/unloading functions
 RLAPI Font GetFontDefault(void);                                                            // Get the default Font
 
 // Text drawing functions
-RLAPI void DrawFPS(int posX, int posY);                                                     // Draw current FPS
 RLAPI void DrawText(const char *text, int posX, int posY, int fontSize, Color color);       // Draw text (using default font)
 RLAPI void DrawTextEx(Font font, const char *text, Vector2 position, float fontSize, float spacing, Color tint);    // Draw text using font and additional parameters
 RLAPI void DrawTextPro(Font font, const char *text, Vector2 position, Vector2 origin, float rotation, float fontSize, float spacing, Color tint); // Draw text using Font and pro parameters (rotation)

@@ -878,38 +878,25 @@ Vector2 GetWorldToScreenEx(Vector3 position, Camera camera, int width, int heigh
     return (Vector2){ (ndcPos.x + 1.0f)/2.0f*(float)width, (ndcPos.y + 1.0f)/2.0f*(float)height };
 }
 
+// Wait for some milliseconds (stop program execution)
+// NOTE: Sleep() granularity could be around 10 ms, it means, Sleep() could
+// take longer than expected... for that reason we use the busy wait loop
+void WaitTime(float sec) {
+    double previousTime = glfwGetTime();
+    Sleep((unsigned int)(sec * 950.0f + 0.5f));
+    double currentTime;
+    do { currentTime = glfwGetTime(); }
+    while ((currentTime - previousTime) < sec);
+}
 // Set target FPS (maximum)
-void SetTargetFPS(int fps)
-{
+void SetTargetFPS(int fps) {
     if (fps < 1) CORE.Time.target = 0.0;
     else CORE.Time.target = 1.0/(double)fps;
     TRACELOG(LOG_INFO, "TIMER: Target time per frame: %02.03f milliseconds", (float)CORE.Time.target*1000);
 }
-
 // Get current FPS
-// NOTE: We calculate an average framerate
-int GetFPS(void)
-{
-    #define FPS_CAPTURE_FRAMES_COUNT    30      // 30 captures
-    #define FPS_AVERAGE_TIME_SECONDS   0.5f     // 500 millisecondes
-    #define FPS_STEP (FPS_AVERAGE_TIME_SECONDS/FPS_CAPTURE_FRAMES_COUNT)
-    int fps = 0;
-    static int index = 0;
-    static float history[FPS_CAPTURE_FRAMES_COUNT] = { 0 };
-    static float average = 0, last = 0;
-    float fpsFrame = GetFrameTime();
-    if (fpsFrame == 0) return 0;
-    if ((GetTime() - last) > FPS_STEP) {
-        last = (float)GetTime();
-        index = (index + 1)%FPS_CAPTURE_FRAMES_COUNT;
-        average -= history[index];
-        history[index] = fpsFrame/FPS_CAPTURE_FRAMES_COUNT;
-        average += history[index];
-    }
-    fps = (int)roundf(1.0f/average);
-    return fps;
-}
-
+int GetFPS(void) { return (int)roundf(1.0f / GetFrameTime()); }
+int GetCPUusage(void) { return (int)roundf(100.0f * (CORE.Time.usrcalc + CORE.Time.draw) / CORE.Time.frame); }
 // Get time in seconds for last frame drawn (delta time)
 float GetFrameTime(void) { return (float)CORE.Time.frame; }
 // Get elapsed time measure in seconds since InitTimer()/glfwInit()
@@ -1318,18 +1305,6 @@ static void SetupFramebuffer(int width, int height)
 static void InitTimer(void) {
     MMRESULT result = timeBeginPeriod(1);
     CORE.Time.previous = GetTime();
-}
-
-// Wait for some milliseconds (stop program execution)
-// NOTE: Sleep() granularity could be around 10 ms, it means, Sleep() could
-// take longer than expected... for that reason we use the busy wait loop
-void WaitTime(float sec)
-{
-    double previousTime = glfwGetTime();
-    Sleep((unsigned int)(sec * 950.0f + 0.5f));
-    double currentTime;
-    do { currentTime = glfwGetTime(); }
-    while ((currentTime - previousTime) < sec);
 }
 
 // Swap back buffer with front buffer (screen drawing)
