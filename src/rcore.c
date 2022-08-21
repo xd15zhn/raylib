@@ -778,7 +778,7 @@ Shader LoadShader(const char *vsFileName, const char *fsFileName)
 }
 
 // Load shader from code strings and bind default locations
-RLAPI Shader LoadShaderFromMemory(const char *vsCode, const char *fsCode)
+Shader LoadShaderFromMemory(const char *vsCode, const char *fsCode)
 {
     Shader shader = { 0 };
     shader.locs = (int *)RL_CALLOC(RL_MAX_SHADER_LOCATIONS, sizeof(int));

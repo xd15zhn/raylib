@@ -5,7 +5,6 @@
 #include <stdlib.h>             // Required for: malloc(), free()
 #include <string.h>             // Required for: strlen() [Used in ImageTextEx()]
 #include <math.h>               // Required for: fabsf()
-#include <stdio.h>              // Required for: sprintf() [Used in ExportImageAsCode()]
 
 #define SUPPORT_FILEFORMAT_PNG      1
 #define SUPPORT_IMAGE_MANIPULATION  1
