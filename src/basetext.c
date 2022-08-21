@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "raylib.h"                 // Declares module functions
 #include <stdlib.h>         // Required for: malloc(), free()
 #include <stdio.h>          // Required for: vsprintf()
 #include <string.h>         // Required for: strcmp(), strstr(), strcpy(), strncpy() [Used in TextReplace()], sscanf() [Used in LoadBMFont()]
@@ -9,21 +10,14 @@
 int TextCopy(char *dst, const char *src)
 {
     int bytes = 0;
-
-    if (dst != NULL)
-    {
-        while (*src != '\0')
-        {
-            *dst = *src;
-            dst++;
-            src++;
-
-            bytes++;
-        }
-
-        *dst = '\0';
+    if (dst == NULL) return 0;
+    while (*src != '\0') {
+        *dst = *src;
+        dst++;
+        src++;
+        bytes++;
     }
-
+    *dst = '\0';
     return bytes;
 }
 
@@ -31,20 +25,15 @@ int TextCopy(char *dst, const char *src)
 // REQUIRES: strcmp()
 bool TextIsEqual(const char *text1, const char *text2)
 {
-    bool result = false;
-
-    if (strcmp(text1, text2) == 0) result = true;
-
-    return result;
+    return strcmp(text1, text2) == 0;
 }
 
 // Get text length in bytes, check for \0 character
 unsigned int TextLength(const char *text)
 {
-    unsigned int length = 0; //strlen(text)
-    if (text != NULL)
-        while (*text++)
-            length++;
+    unsigned int length = 0;  //strlen(text)
+    if (text == NULL) return 0;
+    while (*text++) length++;
     return length;
 }
 
@@ -71,25 +60,17 @@ const char *TextFormat(const char *text, ...)
 const char *TextSubtext(const char *text, int position, int length)
 {
     static char buffer[MAX_TEXT_BUFFER_LENGTH] = { 0 };
-
     int textLength = TextLength(text);
-
-    if (position >= textLength)
-    {
+    if (position >= textLength) {
         position = textLength - 1;
         length = 0;
     }
-
     if (length >= textLength) length = textLength;
-
-    for (int c = 0 ; c < length ; c++)
-    {
+    for (int c = 0 ; c < length ; c++) {
         *(buffer + c) = *(text + position);
         text++;
     }
-
     *(buffer + length) = '\0';
-
     return buffer;
 }
 
@@ -100,46 +81,35 @@ char *TextReplace(char *text, const char *replace, const char *by)
 {
     // Sanity checks and initialization
     if (!text || !replace || !by) return NULL;
-
     char *result;
-
     char *insertPoint;      // Next insert point
     char *temp;             // Temp pointer
     int replaceLen;         // Replace string length of (the string to remove)
     int byLen;              // Replacement length (the string to replace replace by)
     int lastReplacePos;     // Distance between replace and end of last replace
     int count;              // Number of replacements
-
     replaceLen = TextLength(replace);
     if (replaceLen == 0) return NULL;  // Empty replace causes infinite loop during count
-
     byLen = TextLength(by);
-
     // Count the number of replacements needed
     insertPoint = text;
     for (count = 0; (temp = strstr(insertPoint, replace)); count++) insertPoint = temp + replaceLen;
-
     // Allocate returning string and point temp to it
     temp = result = (char *)RL_MALLOC(TextLength(text) + (byLen - replaceLen)*count + 1);
-
     if (!result) return NULL;   // Memory could not be allocated
-
     // First time through the loop, all the variable are set correctly from here on,
     //  - 'temp' points to the end of the result string
     //  - 'insertPoint' points to the next occurrence of replace in text
     //  - 'text' points to the remainder of text after "end of replace"
-    while (count--)
-    {
+    while (count--) {
         insertPoint = strstr(text, replace);
         lastReplacePos = (int)(insertPoint - text);
         temp = strncpy(temp, text, lastReplacePos) + lastReplacePos;
         temp = strcpy(temp, by) + byLen;
         text += lastReplacePos + replaceLen; // Move to next "end of replace"
     }
-
     // Copy remaind text part after replacement to result (pointed by moving temp)
     strcpy(temp, text);
-
     return result;
 }
 

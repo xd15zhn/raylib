@@ -14,47 +14,23 @@
     #endif
 #endif
 
-// Support framebuffer objects by default
-// NOTE: Some driver implementation do not support it, despite they should
-#define RLGL_RENDER_TEXTURES_HINT
-
 //----------------------------------------------------------------------------------
 // Defines and Macros
 //----------------------------------------------------------------------------------
 
 // Default internal render batch elements limits
-#ifndef RL_DEFAULT_BATCH_BUFFER_ELEMENTS
-        // This is the maximum amount of elements (quads) per batch
-        // NOTE: Be careful with text, every letter maps to a quad
-        #define RL_DEFAULT_BATCH_BUFFER_ELEMENTS  8192
-#endif
-#ifndef RL_DEFAULT_BATCH_BUFFERS
-    #define RL_DEFAULT_BATCH_BUFFERS                 1      // Default number of batch buffers (multi-buffering)
-#endif
-#ifndef RL_DEFAULT_BATCH_DRAWCALLS
-    #define RL_DEFAULT_BATCH_DRAWCALLS             256      // Default number of batch draw calls (by state changes: mode, texture)
-#endif
-#ifndef RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS
-    #define RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS       4      // Maximum number of textures units that can be activated on batch drawing (SetShaderValueTexture())
-#endif
-
-// Internal Matrix stack
-#ifndef RL_MAX_MATRIX_STACK_SIZE
-    #define RL_MAX_MATRIX_STACK_SIZE                32      // Maximum size of Matrix stack
-#endif
-
-// Shader limits
-#ifndef RL_MAX_SHADER_LOCATIONS
-    #define RL_MAX_SHADER_LOCATIONS                 32      // Maximum number of shader locations supported
-#endif
+// This is the maximum amount of elements (quads) per batch
+// NOTE: Be careful with text, every letter maps to a quad
+#define RL_DEFAULT_BATCH_BUFFER_ELEMENTS  8192
+#define RL_DEFAULT_BATCH_BUFFERS                 1      // Default number of batch buffers (multi-buffering)
+#define RL_DEFAULT_BATCH_DRAWCALLS             256      // Default number of batch draw calls (by state changes: mode, texture)
+#define RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS       4      // Maximum number of textures units that can be activated on batch drawing (SetShaderValueTexture())
+#define RL_MAX_MATRIX_STACK_SIZE                32      // Internal Maximum size of Matrix stack
+#define RL_MAX_SHADER_LOCATIONS                 32      // Maximum number of shader locations supported
 
 // Projection matrix culling
-#ifndef RL_CULL_DISTANCE_NEAR
-    #define RL_CULL_DISTANCE_NEAR                 0.01      // Default near cull distance
-#endif
-#ifndef RL_CULL_DISTANCE_FAR
-    #define RL_CULL_DISTANCE_FAR                1000.0      // Default far cull distance
-#endif
+#define RL_CULL_DISTANCE_NEAR                 0.01      // Default near cull distance
+#define RL_CULL_DISTANCE_FAR                1000.0      // Default far cull distance
 
 // Texture parameters (equivalent to OpenGL defines)
 #define RL_TEXTURE_WRAP_S                       0x2802      // GL_TEXTURE_WRAP_S

@@ -1,4 +1,7 @@
 #include "utils.h"
+#include "raylib.h"                 // Declares module functions
+#include "rlgl.h"                   // OpenGL abstraction layer to OpenGL 1.1, 3.3+ or ES2
+#include "tracelog.h"
 
 // Default font provided by raylib
 // NOTE: Default font is loaded on InitGraph() and disposed on CloseGraph() [module: core]

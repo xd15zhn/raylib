@@ -1,4 +1,7 @@
 #include "utils.h"
+#include "raylib.h"                 // Declares module functions
+#include "rlgl.h"                   // OpenGL abstraction layer to OpenGL 1.1, 3.3+ or ES2
+#include "tracelog.h"
 #define GLAD_MALLOC RL_MALLOC
 #define GLAD_FREE RL_FREE
 #define GLAD_GL_IMPLEMENTATION
@@ -10,6 +13,11 @@
 //----------------------------------------------------------------------------------
 // Defines and Macros
 //----------------------------------------------------------------------------------
+// Support framebuffer objects by default
+// NOTE: Some driver implementation do not support it, despite they should
+
+#define RLGL_RENDER_TEXTURES_HINT
+
 #ifndef GL_SHADING_LANGUAGE_VERSION
     #define GL_SHADING_LANGUAGE_VERSION         0x8B8C
 #endif
