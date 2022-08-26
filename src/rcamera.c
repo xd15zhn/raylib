@@ -2,6 +2,9 @@
 #include <math.h>
 
 #define VAL_LIMIT(x, min, max)           (((x)<=(min) ? (min) : ((x)>=(max) ? (max) : (x))))
+#define MouseMoveSensitivity             0.003f
+#define MouseScrolSensitivity            1.5f
+#define PlayerMoveSensitivity            8.0f
 
 typedef enum {
     MOVE_FRONT = 0,
@@ -14,13 +17,9 @@ typedef enum {
 
 Vector2 angle;
 Vector2 previousMousePosition;
-int moveControl[6] = { 'W', 'S', 'D', 'A', 'E', 'Q' };
-int smoothZoomControl;
-float MouseMoveSensitivity = 0.003f;
-float MouseScrolSensitivity = 1.5f;
-float PlayerMoveSensitivity = 8.0f;
+const int moveControl[6] = { 'W', 'S', 'D', 'A', 'E', 'Q' };
 
-void Init_Camera(Camera *camera)
+void InitDefaultCamera(Camera *camera)
 {
     camera->position = (Vector3){ 0.0f, 25.0f, 25.0f };
     camera->target = (Vector3){ 0.0f, 0.0f, 0.0f };
@@ -39,7 +38,7 @@ void Init_Camera(Camera *camera)
     DisableCursor();
 }
 
-void Update_Camera(Camera *camera)
+void UpdateDefaultCamera(Camera *camera)
 {
     Vector2 mousePositionDelta = { 0.0f, 0.0f };
     Vector2 mousePosition = GetMousePosition();

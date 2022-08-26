@@ -37,7 +37,6 @@ typedef struct CoreData {
         const char *title;                  // Window text title const pointer
         unsigned int flags;                 // Configuration flags (bit based), keeps window state
         bool ready;                         // Check if window has been initialized successfully
-        bool fullscreen;                    // Check if fullscreen mode is enabled
         bool shouldClose;                   // Check if window set for closing
         bool resizedLastFrame;              // Check if window has been resized last frame
 
@@ -182,7 +181,7 @@ bool WindowShouldClose(void)
 // Check if window has been initialized successfully
 bool IsWindowReady(void) { return CORE.Window.ready; }
 // Check if window is currently fullscreen
-bool IsWindowFullscreen(void) { return CORE.Window.fullscreen; }
+bool IsWindowFullscreen(void) { return (CORE.Window.flags & FLAG_FULLSCREEN_MODE); }
 // Check if window is currently hidden
 bool IsWindowHidden(void) { return ((CORE.Window.flags & FLAG_WINDOW_HIDDEN) > 0); }
 // Check if window has been minimized
@@ -199,7 +198,7 @@ bool IsWindowState(unsigned int flag) { return ((CORE.Window.flags & flag) > 0);
 // Toggle fullscreen mode
 void ToggleFullscreen(void)
 {  // NOTE: glfwSetWindowMonitor() doesn't work properly (bugs)
-    if (!CORE.Window.fullscreen) {
+    if (!(CORE.Window.flags & FLAG_FULLSCREEN_MODE)) {
         // Store previous window position (in case we exit fullscreen)
         glfwGetWindowPos(CORE.Window.handle, &CORE.Window.position.x, &CORE.Window.position.y);
         int monitorCount = 0;
@@ -209,16 +208,13 @@ void ToggleFullscreen(void)
         GLFWmonitor* monitor = monitorIndex < monitorCount ?  monitors[monitorIndex] : NULL;
         if (!monitor) {
             TRACELOG(LOG_WARNING, "GLFW: Failed to get monitor");
-            CORE.Window.fullscreen = false;  // Toggle fullscreen flag
             CORE.Window.flags &= ~FLAG_FULLSCREEN_MODE;
             glfwSetWindowMonitor(CORE.Window.handle, NULL, 0, 0, CORE.Window.screen.width, CORE.Window.screen.height, GLFW_DONT_CARE);
             return;
         }
-        CORE.Window.fullscreen = true;          // Toggle fullscreen flag
         CORE.Window.flags |= FLAG_FULLSCREEN_MODE;
         glfwSetWindowMonitor(CORE.Window.handle, monitor, 0, 0, CORE.Window.screen.width, CORE.Window.screen.height, GLFW_DONT_CARE);
     } else {
-        CORE.Window.fullscreen = false;          // Toggle fullscreen flag
         CORE.Window.flags &= ~FLAG_FULLSCREEN_MODE;
         glfwSetWindowMonitor(CORE.Window.handle, NULL, CORE.Window.position.x, CORE.Window.position.y, CORE.Window.screen.width, CORE.Window.screen.height, GLFW_DONT_CARE);
     }
@@ -1079,7 +1075,6 @@ static bool InitGraphicsDevice(int width, int height)
     //glfwWindowHint(GLFW_AUX_BUFFERS, 0);          // Number of auxiliar buffers
 
     // Check window creation flags
-    if ((CORE.Window.flags & FLAG_FULLSCREEN_MODE) > 0) CORE.Window.fullscreen = true;
     if ((CORE.Window.flags & FLAG_WINDOW_HIDDEN) > 0) glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // Visible window
     else glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);     // Window initially hidden
     if ((CORE.Window.flags & FLAG_WINDOW_UNDECORATED) > 0) glfwWindowHint(GLFW_DECORATED, GLFW_FALSE); // Border and buttons on Window
@@ -1118,7 +1113,7 @@ static bool InitGraphicsDevice(int width, int height)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Profiles Hint: Only 3.3 and above!
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_FALSE); // Fordward Compatibility Hint: Only 3.3 and above!
 
-    if (CORE.Window.fullscreen) {
+    if (CORE.Window.flags & FLAG_FULLSCREEN_MODE) {
         // remember center for switchinging from fullscreen to window
         CORE.Window.position.x = CORE.Window.display.width/2 - CORE.Window.screen.width/2;
         CORE.Window.position.y = CORE.Window.display.height/2 - CORE.Window.screen.height/2;

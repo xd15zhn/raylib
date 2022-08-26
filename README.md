@@ -14,18 +14,18 @@ int main(void) {
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetTargetFPS(60);
     InitGraph(1024, 768, "RayLib-3D");
-	Init_Camera(&camera);
+	InitDefaultCamera(&camera);
     Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };
 
     while (!WindowShouldClose()) {
-		Update_Camera(&camera);
+		UpdateDefaultCamera(&camera);
         BeginDrawing();
             ClearBackground(RAYWHITE);
             BeginMode3D(camera);
                 DrawGrid(120, 5);
                 DrawSphere(cubePosition, 2.0f, ORANGE);
             EndMode3D();
-            DrawFPS(10, 10);
+            DrawText(TextFormat("%2i FPS", GetFPS()), 0, 0, 20, LIME);
         EndDrawing();
     }
     CloseGraph();

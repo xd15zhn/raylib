@@ -536,9 +536,9 @@ RLAPI Vector2 GetWindowPosition(void);                            // Get window 
 RLAPI Vector2 GetWindowScaleDPI(void);                            // Get window scale DPI factor
 RLAPI const char *GetMonitorName(int monitor);                    // Get the human-readable, UTF-8 encoded name of the primary monitor
 
-// Camera
-void Init_Camera(Camera *camera);
-void Update_Camera(Camera *camera);
+// Default Camera. First person mode.
+void InitDefaultCamera(Camera *camera);  // Init camera with default mode and parameters..
+void UpdateDefaultCamera(Camera *camera);  // Camera update.
 
 // Custom frame control functions
 // NOTE: Those functions are intended for advance users that want full control over the frame processing

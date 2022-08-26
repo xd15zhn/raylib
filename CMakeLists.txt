@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(raylib VERSION 1.1.4)
+project(raylib VERSION 1.1.5)
 set(CMAKE_BUILD_TYPE release)
 
 message(STATUS "project name: ${CMAKE_PROJECT_NAME}")
@@ -22,9 +22,8 @@ set(RAYLIB_SOURCES
 add_library(${CMAKE_PROJECT_NAME} STATIC ${RAYLIB_SOURCES})
 if (WIN32)
     MESSAGE(STATUS "System is WINDOWS.")
-    list(APPEND CMAKE_PREFIX_PATH "E:/cpplibraries/")
-    set(CMAKE_INSTALL_LIBDIR ${CMAKE_PREFIX_PATH}lib)
-    set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_PREFIX_PATH}include)
+    set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
+    set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/include)
 elseif (UNIX)
     MESSAGE(STATUS "System is UNIX.")
     add_compile_options(-Wno-psabi)
@@ -32,7 +31,7 @@ elseif (UNIX)
 endif ()
 
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "INSTALL_CONFIGDIR: ${INSTALL_CONFIGDIR}")
 message(STATUS "CMAKE_INSTALL_INCLUDEDIR: ${CMAKE_INSTALL_INCLUDEDIR}")
 
@@ -45,7 +44,7 @@ target_include_directories(${CMAKE_PROJECT_NAME}
     PUBLIC $<BUILD_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_link_libraries(${CMAKE_PROJECT_NAME}
-    PUBLIC @CMAKE_PREFIX_PATH@lib/libglfw3.a
+    PUBLIC @CMAKE_INSTALL_PREFIX@/lib/libglfw3.a
     PUBLIC ${tracelog_LIBS}
     winmm
 )
