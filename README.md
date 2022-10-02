@@ -3,8 +3,8 @@
 原仓库 <https://github.com/raysan5/raylib>，这里根据自己的需求进行了大量修改和裁剪。  
 
 ## 依赖库
-- <https://github.com/glfw/glfw>
-- <https://gitee.com/xd15zhn/tracelog>
+- <https://github.com/glfw/glfw> (必装)
+- <https://gitee.com/xd15zhn/tracelog> (选装)
 
 ## 一个简单的例子
 ```cpp
@@ -18,7 +18,6 @@ int main(void) {
     Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };
 
     while (!WindowShouldClose()) {
-		UpdateDefaultCamera(&camera);
         BeginDrawing();
             ClearBackground(RAYWHITE);
             BeginMode3D(camera);
@@ -38,7 +37,7 @@ cmake_minimum_required(VERSION 3.12)
 project(untitled)
 set(CMAKE_BUILD_TYPE release)
 add_executable(${CMAKE_PROJECT_NAME} main.cpp)
-list(APPEND CMAKE_PREFIX_PATH "E:/cpplibraries/")
+list(APPEND CMAKE_INSTALL_PREFIX "E:/cpplibraries")
 find_package(raylib REQUIRED)
 message(STATUS "raylib_VERSION: ${raylib_VERSION}")
 message(STATUS "raylib_LIBS: ${raylib_LIBS}")

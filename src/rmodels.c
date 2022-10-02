@@ -1,7 +1,6 @@
 #include "utils.h"
 #include "raylib.h"                 // Declares module functions
 #include "rlgl.h"                   // OpenGL abstraction layer to OpenGL 1.1, 3.3+ or ES2
-#include "tracelog.h"
 #include <stdio.h>          // Required for: sprintf()
 #include <stdlib.h>         // Required for: malloc(), free()
 #include <string.h>         // Required for: memcmp(), strlen()
@@ -29,7 +28,7 @@
 #define PAR_REALLOC(T, BUF, N) ((T*)RL_REALLOC(BUF, sizeof(T)*(N)))
 #define PAR_FREE RL_FREE
 #define PAR_SHAPES_IMPLEMENTATION
-#include "external/par_shapes.h"    // Shapes 3d parametric generation
+// #include "external/par_shapes.h"    // Shapes 3d parametric generation
 
 static Model LoadOBJ(const char *fileName);     // Load OBJ mesh data
 
@@ -1345,131 +1344,6 @@ void SetModelMeshMaterial(Model *model, int meshId, int materialId)
     else  model->meshMaterial[meshId] = materialId;
 }
 
-// Generate polygonal mesh
-Mesh GenMeshPoly(int sides, float radius)
-{
-    Mesh mesh = { 0 };
-    if (sides < 3) return mesh;
-    int vertexCount = sides*3;
-    // Vertices definition
-    Vector3 *vertices = (Vector3 *)RL_MALLOC(vertexCount*sizeof(Vector3));
-    float d = 0.0f, dStep = 360.0f/sides;
-    for (int v = 0; v < vertexCount; v += 3) {
-        vertices[v] = (Vector3){ 0.0f, 0.0f, 0.0f };
-        vertices[v + 1] = (Vector3){ sinf(DEG2RAD*d)*radius, 0.0f, cosf(DEG2RAD*d)*radius };
-        vertices[v + 2] = (Vector3){sinf(DEG2RAD*(d+dStep))*radius, 0.0f, cosf(DEG2RAD*(d+dStep))*radius };
-        d += dStep;
-    }
-    // Normals definition
-    Vector3 *normals = (Vector3 *)RL_MALLOC(vertexCount*sizeof(Vector3));
-    for (int n = 0; n < vertexCount; n++) normals[n] = (Vector3){ 0.0f, 1.0f, 0.0f };   // Vector3.up;
-    // TexCoords definition
-    Vector2 *texcoords = (Vector2 *)RL_MALLOC(vertexCount*sizeof(Vector2));
-    for (int n = 0; n < vertexCount; n++) texcoords[n] = (Vector2){ 0.0f, 0.0f };
-    mesh.vertexCount = vertexCount;
-    mesh.triangleCount = sides;
-    mesh.vertices = (float *)RL_MALLOC(mesh.vertexCount*3*sizeof(float));
-    mesh.texcoords = (float *)RL_MALLOC(mesh.vertexCount*2*sizeof(float));
-    mesh.normals = (float *)RL_MALLOC(mesh.vertexCount*3*sizeof(float));
-    // Mesh vertices position array
-    for (int i = 0; i < mesh.vertexCount; i++) {
-        mesh.vertices[3*i] = vertices[i].x;
-        mesh.vertices[3*i + 1] = vertices[i].y;
-        mesh.vertices[3*i + 2] = vertices[i].z;
-    }
-    // Mesh texcoords array
-    for (int i = 0; i < mesh.vertexCount; i++) {
-        mesh.texcoords[2*i] = texcoords[i].x;
-        mesh.texcoords[2*i + 1] = texcoords[i].y;
-    }
-    // Mesh normals array
-    for (int i = 0; i < mesh.vertexCount; i++) {
-        mesh.normals[3*i] = normals[i].x;
-        mesh.normals[3*i + 1] = normals[i].y;
-        mesh.normals[3*i + 2] = normals[i].z;
-    }
-    RL_FREE(vertices);
-    RL_FREE(normals);
-    RL_FREE(texcoords);
-    // Upload vertex data to GPU (static mesh)
-    // NOTE: mesh.vboId array is allocated inside UploadMesh()
-    UploadMesh(&mesh, false);
-    return mesh;
-}
-
-// Generate plane mesh (with subdivisions)
-Mesh GenMeshPlane(float width, float length, int resX, int resZ)
-{
-    Mesh mesh = { 0 };
-    resX++; resZ++;
-    // Vertices definition
-    int vertexCount = resX*resZ; // vertices get reused for the faces
-    Vector3 *vertices = (Vector3 *)RL_MALLOC(vertexCount*sizeof(Vector3));
-    for (int z = 0; z < resZ; z++) {
-        // [-length/2, length/2]
-        float zPos = ((float)z/(resZ - 1) - 0.5f)*length;
-        for (int x = 0; x < resX; x++) {
-            // [-width/2, width/2]
-            float xPos = ((float)x/(resX - 1) - 0.5f)*width;
-            vertices[x + z*resX] = (Vector3){ xPos, 0.0f, zPos };
-        }
-    }
-    // Normals definition
-    Vector3 *normals = (Vector3 *)RL_MALLOC(vertexCount*sizeof(Vector3));
-    for (int n = 0; n < vertexCount; n++) normals[n] = (Vector3){ 0.0f, 1.0f, 0.0f };   // Vector3.up;
-    // TexCoords definition
-    Vector2 *texcoords = (Vector2 *)RL_MALLOC(vertexCount*sizeof(Vector2));
-    for (int v = 0; v < resZ; v++)
-        for (int u = 0; u < resX; u++)
-            texcoords[u + v*resX] = (Vector2){ (float)u/(resX - 1), (float)v/(resZ - 1) };
-    // Triangles definition (indices)
-    int numFaces = (resX - 1)*(resZ - 1);
-    int *triangles = (int *)RL_MALLOC(numFaces*6*sizeof(int));
-    int t = 0;
-    for (int face = 0; face < numFaces; face++) {
-        // Retrieve lower left corner from face ind
-        int i = face % (resX - 1) + (face/(resZ - 1)*resX);
-        triangles[t++] = i + resX;
-        triangles[t++] = i + 1;
-        triangles[t++] = i;
-        triangles[t++] = i + resX;
-        triangles[t++] = i + resX + 1;
-        triangles[t++] = i + 1;
-    }
-    mesh.vertexCount = vertexCount;
-    mesh.triangleCount = numFaces*2;
-    mesh.vertices = (float *)RL_MALLOC(mesh.vertexCount*3*sizeof(float));
-    mesh.texcoords = (float *)RL_MALLOC(mesh.vertexCount*2*sizeof(float));
-    mesh.normals = (float *)RL_MALLOC(mesh.vertexCount*3*sizeof(float));
-    mesh.indices = (unsigned short *)RL_MALLOC(mesh.triangleCount*3*sizeof(unsigned short));
-    // Mesh vertices position array
-    for (int i = 0; i < mesh.vertexCount; i++) {
-        mesh.vertices[3*i] = vertices[i].x;
-        mesh.vertices[3*i + 1] = vertices[i].y;
-        mesh.vertices[3*i + 2] = vertices[i].z;
-    }
-    // Mesh texcoords array
-    for (int i = 0; i < mesh.vertexCount; i++) {
-        mesh.texcoords[2*i] = texcoords[i].x;
-        mesh.texcoords[2*i + 1] = texcoords[i].y;
-    }
-    // Mesh normals array
-    for (int i = 0; i < mesh.vertexCount; i++) {
-        mesh.normals[3*i] = normals[i].x;
-        mesh.normals[3*i + 1] = normals[i].y;
-        mesh.normals[3*i + 2] = normals[i].z;
-    }
-    // Mesh indices array initialization
-    for (int i = 0; i < mesh.triangleCount*3; i++) mesh.indices[i] = triangles[i];
-    RL_FREE(vertices);
-    RL_FREE(normals);
-    RL_FREE(texcoords);
-    RL_FREE(triangles);
-    // Upload vertex data to GPU (static mesh)
-    UploadMesh(&mesh, false);
-    return mesh;
-}
-
 // Generated cuboid mesh
 Mesh GenMeshCube(float width, float height, float length)
 {
@@ -1574,37 +1448,6 @@ Mesh GenMeshCube(float width, float height, float length)
     return mesh;
 }
 
-// Generate sphere mesh (standard sphere)
-Mesh GenMeshSphere(float radius, int rings, int slices)
-{
-    Mesh mesh = { 0 };
-    if ((rings >= 3) && (slices >= 3)) {
-        par_shapes_mesh *sphere = par_shapes_create_parametric_sphere(slices, rings);
-        par_shapes_scale(sphere, radius, radius, radius);
-        // NOTE: Soft normals are computed internally
-        mesh.vertices = (float *)RL_MALLOC(sphere->ntriangles*3*3*sizeof(float));
-        mesh.texcoords = (float *)RL_MALLOC(sphere->ntriangles*3*2*sizeof(float));
-        mesh.normals = (float *)RL_MALLOC(sphere->ntriangles*3*3*sizeof(float));
-        mesh.vertexCount = sphere->ntriangles*3;
-        mesh.triangleCount = sphere->ntriangles;
-        for (int k = 0; k < mesh.vertexCount; k++) {
-            mesh.vertices[k*3] = sphere->points[sphere->triangles[k]*3];
-            mesh.vertices[k*3 + 1] = sphere->points[sphere->triangles[k]*3 + 1];
-            mesh.vertices[k*3 + 2] = sphere->points[sphere->triangles[k]*3 + 2];
-            mesh.normals[k*3] = sphere->normals[sphere->triangles[k]*3];
-            mesh.normals[k*3 + 1] = sphere->normals[sphere->triangles[k]*3 + 1];
-            mesh.normals[k*3 + 2] = sphere->normals[sphere->triangles[k]*3 + 2];
-            mesh.texcoords[k*2] = sphere->tcoords[sphere->triangles[k]*2];
-            mesh.texcoords[k*2 + 1] = sphere->tcoords[sphere->triangles[k]*2 + 1];
-        }
-        par_shapes_free_mesh(sphere);
-        // Upload vertex data to GPU (static mesh)
-        UploadMesh(&mesh, false);
-    }
-    else TRACELOG(LOG_WARNING, "MESH: Failed to generate mesh: sphere");
-    return mesh;
-}
-
 // Draw a model (with texture if set)
 void DrawModel(Model model, Vector3 position, float scale, Color tint)
 {
@@ -1682,10 +1525,10 @@ static Model LoadOBJ(const char *fileName)
         if (materialCount > 0) {
             model.materialCount = materialCount;
             model.materials = (Material *)RL_CALLOC(model.materialCount, sizeof(Material));
-            TraceLog(LOG_INFO, "MODEL: model has %i material meshes", materialCount);
+            TRACELOG(LOG_INFO, "MODEL: model has %i material meshes", materialCount);
         } else {
             model.meshCount = 1;
-            TraceLog(LOG_INFO, "MODEL: No materials, putting all meshes in a default material");
+            TRACELOG(LOG_INFO, "MODEL: No materials, putting all meshes in a default material");
         }
         model.meshes = (Mesh *)RL_CALLOC(model.meshCount, sizeof(Mesh));
         model.meshMaterial = (int *)RL_CALLOC(model.meshCount, sizeof(int));

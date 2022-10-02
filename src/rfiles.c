@@ -1,6 +1,5 @@
 #include "utils.h"
 #include "raylib.h"                 // Declares module functions
-#include "tracelog.h"
 #include <stddef.h>
 #include <sys/stat.h>               // Required for: stat() [Used in GetFileModTime()]
 #include <dirent.h>             // Required for: DIR, opendir(), closedir() [Used in GetDirectoryFiles()]

@@ -536,10 +536,6 @@ RLAPI Vector2 GetWindowPosition(void);                            // Get window 
 RLAPI Vector2 GetWindowScaleDPI(void);                            // Get window scale DPI factor
 RLAPI const char *GetMonitorName(int monitor);                    // Get the human-readable, UTF-8 encoded name of the primary monitor
 
-// Default Camera. First person mode.
-void InitDefaultCamera(Camera *camera);  // Init camera with default mode and parameters..
-void UpdateDefaultCamera(Camera *camera);  // Camera update.
-
 // Custom frame control functions
 // NOTE: Those functions are intended for advance users that want full control over the frame processing
 // By default EndDrawing() does this job: draws everything + SwapScreenBuffer() + manage frame timming + PollInputEvents()
@@ -591,6 +587,7 @@ RLAPI double GetTime(void);                                       // Get elapsed
 
 // Misc. functions
 RLAPI void SetConfigFlags(unsigned int flags);                    // Setup init configuration flags (view FLAGS)
+void InitDefaultCamera(Camera *camera);                           // Init camera with default mode and parameters
 
 // Files management functions
 RLAPI bool FileExists(const char *fileName);                      // Check if file exists
@@ -892,10 +889,7 @@ RLAPI void DrawMesh(Mesh mesh, Material material, Matrix transform);            
 RLAPI void DrawMeshInstanced(Mesh mesh, Material material, Matrix *transforms, int instances); // Draw multiple mesh instances with material and different transforms
 
 // Mesh generation functions
-RLAPI Mesh GenMeshPoly(int sides, float radius);                                            // Generate polygonal mesh
-RLAPI Mesh GenMeshPlane(float width, float length, int resX, int resZ);                     // Generate plane mesh (with subdivisions)
 RLAPI Mesh GenMeshCube(float width, float height, float length);                            // Generate cuboid mesh
-RLAPI Mesh GenMeshSphere(float radius, int rings, int slices);                              // Generate sphere mesh (standard sphere)
 
 // Material loading/unloading functions
 RLAPI Material LoadMaterialDefault(void);                                                   // Load default material (Supports: DIFFUSE, SPECULAR, NORMAL maps)

@@ -1,7 +1,6 @@
 #include "utils.h"
 #include "raylib.h"                 // Declares module functions
 #include "rlgl.h"                   // OpenGL abstraction layer to OpenGL 1.1, 3.3+ or ES2
-#include "tracelog.h"
 #define GLAD_MALLOC RL_MALLOC
 #define GLAD_FREE RL_FREE
 #define GLAD_GL_IMPLEMENTATION
@@ -1359,7 +1358,7 @@ unsigned int rlLoadTexture(void *data, int width, int height, int format, int mi
         int glInternalFormat, glFormat, glType;
         rlGetGlTextureFormats(format, &glInternalFormat, &glFormat, &glType);
 
-        TRACELOGD("TEXTURE: Load mipmap level %i (%i x %i), size: %i, offset: %i", i, mipWidth, mipHeight, mipSize, mipOffset);
+        TRACELOG(LOG_DEBUG, "TEXTURE: Load mipmap level %i (%i x %i), size: %i, offset: %i", i, mipWidth, mipHeight, mipSize, mipOffset);
 
         if (glInternalFormat != -1)
         {
@@ -1950,7 +1949,7 @@ unsigned int rlLoadShaderCode(const char *vsCode, const char *fsCode)
         // Get the name of the uniforms
         glGetActiveUniform(id, i, sizeof(name) - 1, &namelen, &num, &type, name);
         name[namelen] = 0;
-        TRACELOGD("SHADER: [ID %i] Active uniform (%s) set at location: %i", id, name, glGetUniformLocation(id, name));
+        TRACELOG(LOG_DEBUG, "SHADER: [ID %i] Active uniform (%s) set at location: %i", id, name, glGetUniformLocation(id, name));
     }
     return id;
 }

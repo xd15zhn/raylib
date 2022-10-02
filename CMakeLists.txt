@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(raylib VERSION 1.1.5)
+project(raylib VERSION 1.1.6)
 set(CMAKE_BUILD_TYPE release)
 
 message(STATUS "project name: ${CMAKE_PROJECT_NAME}")
@@ -15,11 +15,12 @@ set(RAYLIB_SOURCES
     ${PROJECT_SOURCE_DIR}/src/rfiles.c
     ${PROJECT_SOURCE_DIR}/src/rlgl.c
     ${PROJECT_SOURCE_DIR}/src/raymath.c
-    ${PROJECT_SOURCE_DIR}/src/rcamera.c
     ${PROJECT_SOURCE_DIR}/src/basetext.c
 )
 
 add_library(${CMAKE_PROJECT_NAME} STATIC ${RAYLIB_SOURCES})
+option(USE_TRACELOG "Dependent lirary tracelog, used to print logs." ON)
+
 if (WIN32)
     MESSAGE(STATUS "System is WINDOWS.")
     set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
@@ -35,9 +36,17 @@ message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "INSTALL_CONFIGDIR: ${INSTALL_CONFIGDIR}")
 message(STATUS "CMAKE_INSTALL_INCLUDEDIR: ${CMAKE_INSTALL_INCLUDEDIR}")
 
-find_package(tracelog REQUIRED)
-message(STATUS "tracelog_LIBS: ${tracelog_LIBS}")
-message(STATUS "tracelog_VERSION: ${tracelog_VERSION}")
+if(USE_TRACELOG)
+    message(STATUS "Use dependent lirary tracelog.")
+    find_package(tracelog REQUIRED)
+    message(STATUS "tracelog_VERSION: ${tracelog_VERSION}")
+    message(STATUS "tracelog_DIR: ${tracelog_DIR}")
+    message(STATUS "tracelog_LIBS: ${tracelog_LIBS}")
+    message(STATUS "tracelog_INCLUDE_DIRS: ${tracelog_INCLUDE_DIRS}")
+    add_definitions(-DUSE_TRACELOG)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${tracelog_LIBS})
+    target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${tracelog_INCLUDE_DIRS}>)
+endif()
 target_include_directories(${CMAKE_PROJECT_NAME}
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/external>

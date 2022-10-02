@@ -1,7 +1,6 @@
 #include "utils.h"
 #include "raylib.h"                 // Declares module functions
 #include "rlgl.h"                   // OpenGL abstraction layer to OpenGL 1.1, 3.3+ or ES2
-#include "tracelog.h"
 #include <string.h>                 // Required for: strrchr(), strcmp(), strlen()
 #include <time.h>                   // Required for: time() [Used in InitTimer()]
 #include <math.h>                   // Required for: tan() [Used in BeginMode3D()], atan2f() [Used in LoadVrStereoConfig()]
@@ -908,6 +907,26 @@ double GetTime(void) { return glfwGetTime(); }
 // Selected flags are set but not evaluated at this point,
 // flag evaluation happens at InitGraph() or SetWindowState()
 void SetConfigFlags(unsigned int flags) { CORE.Window.flags |= flags; }
+
+// Init camera with default mode and parameters
+void InitDefaultCamera(Camera *camera)
+{
+    camera->position = (Vector3){ 0.0f, 25.0f, 25.0f };
+    camera->target = (Vector3){ 0.0f, 0.0f, 0.0f };
+    camera->up = (Vector3){ 0.0f, 1.0f, 0.0f };
+    camera->fovy = 45.0f;
+    camera->target = Vector3Subtract(camera->position, camera->target);
+    camera->target = Vector3Add(camera->position, camera->target);
+    float dx = camera->target.x - camera->position.x;
+    float dy = camera->target.y - camera->position.y;
+    float dz = camera->target.z - camera->position.z;
+    float anglex = atan2f(dx, dz);
+    float angley = atan2f(dy, sqrtf(dx*dx + dz*dz));
+    camera->target.x = camera->position.x - cosf(angley)*sinf(anglex);
+    camera->target.y = camera->position.y - sinf(angley);
+    camera->target.z = camera->position.z - cosf(angley)*cosf(anglex);
+    DisableCursor();
+}
 
 //----------------------------------------------------------------------------------
 // Module Functions Definition - Input (Keyboard, Mouse) Functions

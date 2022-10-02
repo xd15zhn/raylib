@@ -1,7 +1,6 @@
 #include "utils.h"
 #include "raylib.h"                 // Declares module functions
 #include "rlgl.h"                   // OpenGL abstraction layer to OpenGL 1.1, 3.3+ or ES2
-#include "tracelog.h"
 #include <stdlib.h>
 
 // Default font provided by raylib

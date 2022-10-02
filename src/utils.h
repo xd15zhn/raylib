@@ -9,6 +9,14 @@
     #define CHDIR chdir
 #endif
 
+// USE_TRACELOG
+#if defined(USE_TRACELOG)
+    #include "tracelog.h"
+    #define TRACELOG(level, ...) TraceLog(level, __VA_ARGS__)
+#else
+    #define TRACELOG(level, ...) (void)0
+#endif
+
 // Allow custom memory allocators
 #ifndef RL_MALLOC
     #define RL_MALLOC(sz)     malloc(sz)
