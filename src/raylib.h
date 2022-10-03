@@ -502,39 +502,9 @@ extern "C" {            // Prevents name mangling of functions
 RLAPI void InitGraph(int width, int height, const char *title);  // Initialize window and OpenGL context
 RLAPI bool WindowShouldClose(void);                               // Check if KEY_ESCAPE pressed or Close icon pressed
 RLAPI void CloseGraph(void);                                     // Close window and unload OpenGL context
-RLAPI bool IsWindowReady(void);                                   // Check if window has been initialized successfully
-RLAPI bool IsWindowFullscreen(void);                              // Check if window is currently fullscreen
-RLAPI bool IsWindowHidden(void);                                  // Check if window is currently hidden
-RLAPI bool IsWindowMinimized(void);                               // Check if window is currently minimized
-RLAPI bool IsWindowMaximized(void);                               // Check if window is currently maximized
-RLAPI bool IsWindowFocused(void);                                 // Check if window is currently focused
-RLAPI bool IsWindowResized(void);                                 // Check if window has been resized last frame
-RLAPI bool IsWindowState(unsigned int flag);                      // Check if one specific window flag is enabled
-RLAPI void SetWindowState(unsigned int flags);                    // Set window configuration state using flags
-RLAPI void ClearWindowState(unsigned int flags);                  // Clear window configuration state flags
-RLAPI void ToggleFullscreen(void);                                // Toggle window state: fullscreen/windowed
-RLAPI void MaximizeWindow(void);                                  // Set window state: maximized, if resizable
-RLAPI void MinimizeWindow(void);                                  // Set window state: minimized, if resizable
-RLAPI void RestoreWindow(void);                                   // Set window state: not minimized/maximized
-RLAPI void SetWindowIcon(Image image);                            // Set icon for window
-RLAPI void SetWindowTitle(const char *title);                     // Set title for window
-RLAPI void SetWindowPosition(int x, int y);                       // Set window position on screen
-RLAPI void SetWindowMonitor(int monitor);                         // Set monitor for the current window (fullscreen mode)
-RLAPI void SetWindowMinSize(int width, int height);               // Set window minimum dimensions (for FLAG_WINDOW_RESIZABLE)
-RLAPI void SetWindowSize(int width, int height);                  // Set window dimensions
 RLAPI int GetScreenWidth(void);                                   // Get current screen width
 RLAPI int GetScreenHeight(void);                                  // Get current screen height
-RLAPI int GetMonitorCount(void);                                  // Get number of connected monitors
-RLAPI int GetCurrentMonitor(void);                                // Get current connected monitor
-RLAPI Vector2 GetMonitorPosition(int monitor);                    // Get specified monitor position
-RLAPI int GetMonitorWidth(int monitor);                           // Get specified monitor width (max available by monitor)
-RLAPI int GetMonitorHeight(int monitor);                          // Get specified monitor height (max available by monitor)
-RLAPI int GetMonitorPhysicalWidth(int monitor);                   // Get specified monitor physical width in millimetres
-RLAPI int GetMonitorPhysicalHeight(int monitor);                  // Get specified monitor physical height in millimetres
-RLAPI int GetMonitorRefreshRate(int monitor);                     // Get specified monitor refresh rate
-RLAPI Vector2 GetWindowPosition(void);                            // Get window position XY on monitor
-RLAPI Vector2 GetWindowScaleDPI(void);                            // Get window scale DPI factor
-RLAPI const char *GetMonitorName(int monitor);                    // Get the human-readable, UTF-8 encoded name of the primary monitor
+RLAPI void SetWindowMonitor(unsigned int monitor);                // Set monitor for the current window
 
 // Custom frame control functions
 // NOTE: Those functions are intended for advance users that want full control over the frame processing

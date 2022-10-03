@@ -7,3 +7,6 @@
 - [rmodels.c] DELETED: `GenMeshPlane`。
 - [rmodels.c] DELETED: `GenMeshPoly`。
 - [rcamera.c] MOVED: `InitDefaultCamera` to `rcore.c`。
+
+# V1.1.7
+- [rcore.c] CHANGED: `SetWindowMonitor`(全屏时窗口能选择建立在哪个显示器上)。
