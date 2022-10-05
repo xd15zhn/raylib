@@ -812,9 +812,6 @@ void SetShaderValueTexture(Shader shader, int locIndex, Texture2D texture)
     rlSetUniformSampler(locIndex, texture.id);
     //rlDisableShader();
 }
-
-// Get transform matrix for camera
-Matrix GetCameraMatrix(Camera camera) { return MatrixLookAt(camera.position, camera.target, camera.up); }
 // Get the screen space position from a 3d world space position
 Vector2 GetWorldToScreen(Vector3 position, Camera camera) { return GetWorldToScreenEx(position, camera, GetScreenWidth(), GetScreenHeight()); }
 
@@ -884,17 +881,6 @@ void InitDefaultCamera(Camera *camera)
     camera->target = (Vector3){ 0.0f, 0.0f, 0.0f };
     camera->up = (Vector3){ 0.0f, 1.0f, 0.0f };
     camera->fovy = 45.0f;
-    camera->target = Vector3Subtract(camera->position, camera->target);
-    camera->target = Vector3Add(camera->position, camera->target);
-    float dx = camera->target.x - camera->position.x;
-    float dy = camera->target.y - camera->position.y;
-    float dz = camera->target.z - camera->position.z;
-    float anglex = atan2f(dx, dz);
-    float angley = atan2f(dy, sqrtf(dx*dx + dz*dz));
-    camera->target.x = camera->position.x - cosf(angley)*sinf(anglex);
-    camera->target.y = camera->position.y - sinf(angley);
-    camera->target.z = camera->position.z - cosf(angley)*cosf(anglex);
-    DisableCursor();
 }
 
 //----------------------------------------------------------------------------------
@@ -961,8 +947,7 @@ bool IsMouseButtonDown(int button) {
 }
 
 // Check if a mouse button has been released once
-bool IsMouseButtonReleased(int button)
-{
+bool IsMouseButtonReleased(int button) {
     return ((CORE.Input.Mouse.currentButtonState[button] == 0) && (CORE.Input.Mouse.previousButtonState[button] == 1));
 }
 
@@ -974,8 +959,7 @@ int GetMouseX(void) { return (int)((CORE.Input.Mouse.currentPosition.x + CORE.In
 int GetMouseY(void) { return (int)((CORE.Input.Mouse.currentPosition.y + CORE.Input.Mouse.offset.y)*CORE.Input.Mouse.scale.y); }
 
 // Get mouse position XY
-Vector2 GetMousePosition(void)
-{
+Vector2 GetMousePosition(void) {
     Vector2 position = { 0 };
     position.x = (CORE.Input.Mouse.currentPosition.x + CORE.Input.Mouse.offset.x)*CORE.Input.Mouse.scale.x;
     position.y = (CORE.Input.Mouse.currentPosition.y + CORE.Input.Mouse.offset.y)*CORE.Input.Mouse.scale.y;
@@ -983,8 +967,7 @@ Vector2 GetMousePosition(void)
 }
 
 // Get mouse delta between frames
-Vector2 GetMouseDelta(void)
-{
+Vector2 GetMouseDelta(void) {
     Vector2 delta = {0};
     delta.x = CORE.Input.Mouse.currentPosition.x - CORE.Input.Mouse.previousPosition.x;
     delta.y = CORE.Input.Mouse.currentPosition.y - CORE.Input.Mouse.previousPosition.y;
@@ -992,8 +975,7 @@ Vector2 GetMouseDelta(void)
 }
 
 // Set mouse position XY
-void SetMousePosition(int x, int y)
-{
+void SetMousePosition(int x, int y) {
     CORE.Input.Mouse.currentPosition = (Vector2){ (float)x, (float)y };
     glfwSetCursorPos(CORE.Window.handle, CORE.Input.Mouse.currentPosition.x, CORE.Input.Mouse.currentPosition.y);
 }
@@ -1008,8 +990,7 @@ void SetMouseScale(float scaleX, float scaleY) { CORE.Input.Mouse.scale = (Vecto
 float GetMouseWheelMove(void) { return CORE.Input.Mouse.previousWheelMove; }
 
 // Set mouse cursor
-void SetMouseCursor(int cursor)
-{
+void SetMouseCursor(int cursor) {
     CORE.Input.Mouse.cursor = cursor;
     if (cursor == MOUSE_CURSOR_DEFAULT)
         glfwSetCursor(CORE.Window.handle, NULL);
@@ -1110,16 +1091,6 @@ static bool InitGraphicsDevice(int width, int height)
         // Obtain recommended CORE.Window.display.width/CORE.Window.display.height from a valid videomode for the monitor
         int count = 0;
         const GLFWvidmode *modes = glfwGetVideoModes(monitor, &count);
-        // Get closest video mode to desired CORE.Window.screen.width/CORE.Window.screen.height
-        // for (int i = 0; i < count; i++) {
-        //     if ((unsigned int)modes[i].width >= CORE.Window.screen.width) {
-        //         if ((unsigned int)modes[i].height >= CORE.Window.screen.height) {
-        //             CORE.Window.display.width = modes[i].width;
-        //             CORE.Window.display.height = modes[i].height;
-        //             break;
-        //         }
-        //     }
-        // }
         // If we are windowed fullscreen, ensures that window does not minimize when focus is lost
         if ((CORE.Window.screen.height == CORE.Window.display.height) && (CORE.Window.screen.width == CORE.Window.display.width))
             glfwWindowHint(GLFW_AUTO_ICONIFY, 0);
