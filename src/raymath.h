@@ -193,12 +193,6 @@ Quaternion QuaternionMultiply(Quaternion q1, Quaternion q2);
 // Scale quaternion by float value
 Quaternion QuaternionScale(Quaternion q, float mul);
 
-// Divide two quaternions
-Quaternion QuaternionDivide(Quaternion q1, Quaternion q2);
-
-// Calculate linear interpolation between two quaternions
-Quaternion QuaternionLerp(Quaternion q1, Quaternion q2, float amount);
-
 // Calculate slerp-optimized interpolation between two quaternions
 Quaternion QuaternionNlerp(Quaternion q1, Quaternion q2, float amount);
 

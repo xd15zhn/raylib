@@ -684,65 +684,39 @@ float16 MatrixToFloatV(Matrix mat)
 //----------------------------------------------------------------------------------
 
 // Add two quaternions
-Quaternion QuaternionAdd(Quaternion q1, Quaternion q2)
-{
+Quaternion QuaternionAdd(Quaternion q1, Quaternion q2) {
     return (Quaternion){q1.x + q2.x, q1.y + q2.y, q1.z + q2.z, q1.w + q2.w};
 }
-
 // Add quaternion and float value
-Quaternion QuaternionAddValue(Quaternion q, float add)
-{
-    Quaternion result = {q.x + add, q.y + add, q.z + add, q.w + add};
-
-    return result;
+Quaternion QuaternionAddValue(Quaternion q, float add) {
+    return (Quaternion){q.x + add, q.y + add, q.z + add, q.w + add};
 }
-
 // Subtract two quaternions
-Quaternion QuaternionSubtract(Quaternion q1, Quaternion q2)
-{
-    Quaternion result = {q1.x - q2.x, q1.y - q2.y, q1.z - q2.z, q1.w - q2.w};
-
-    return result;
+Quaternion QuaternionSubtract(Quaternion q1, Quaternion q2) {
+    return (Quaternion){q1.x - q2.x, q1.y - q2.y, q1.z - q2.z, q1.w - q2.w};
 }
-
 // Subtract quaternion and float value
-Quaternion QuaternionSubtractValue(Quaternion q, float sub)
-{
-    Quaternion result = {q.x - sub, q.y - sub, q.z - sub, q.w - sub};
-
-    return result;
+Quaternion QuaternionSubtractValue(Quaternion q, float sub) {
+    return (Quaternion){q.x - sub, q.y - sub, q.z - sub, q.w - sub};
 }
-
 // Get identity quaternion
-Quaternion QuaternionIdentity(void)
-{
-    Quaternion result = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-    return result;
+Quaternion QuaternionIdentity(void) {
+    return (Quaternion){ 0.0f, 0.0f, 0.0f, 1.0f };
 }
-
 // Computes the length of a quaternion
-float QuaternionLength(Quaternion q)
-{
-    float result = sqrtf(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
-
-    return result;
+float QuaternionLength(Quaternion q) {
+    return sqrtf(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
 }
-
 // Normalize provided quaternion
-Quaternion QuaternionNormalize(Quaternion q)
-{
+Quaternion QuaternionNormalize(Quaternion q) {
     Quaternion result = { 0 };
-
     float length = sqrtf(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
     if (length == 0.0f) length = 1.0f;
     float ilength = 1.0f/length;
-
     result.x = q.x*ilength;
     result.y = q.y*ilength;
     result.z = q.z*ilength;
     result.w = q.w*ilength;
-
     return result;
 }
 
@@ -750,72 +724,36 @@ Quaternion QuaternionNormalize(Quaternion q)
 Quaternion QuaternionInvert(Quaternion q)
 {
     Quaternion result = q;
-
     float length = sqrtf(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
     float lengthSq = length*length;
-
-    if (lengthSq != 0.0)
-    {
+    if (lengthSq != 0.0) {
         float invLength = 1.0f/lengthSq;
-
         result.x *= -invLength;
         result.y *= -invLength;
         result.z *= -invLength;
         result.w *= invLength;
     }
-
     return result;
 }
-
 // Calculate two quaternion multiplication
-Quaternion QuaternionMultiply(Quaternion q1, Quaternion q2)
-{
+Quaternion QuaternionMultiply(Quaternion q1, Quaternion q2) {
     Quaternion result = { 0 };
-
     float qax = q1.x, qay = q1.y, qaz = q1.z, qaw = q1.w;
     float qbx = q2.x, qby = q2.y, qbz = q2.z, qbw = q2.w;
-
     result.x = qax*qbw + qaw*qbx + qay*qbz - qaz*qby;
     result.y = qay*qbw + qaw*qby + qaz*qbx - qax*qbz;
     result.z = qaz*qbw + qaw*qbz + qax*qby - qay*qbx;
     result.w = qaw*qbw - qax*qbx - qay*qby - qaz*qbz;
-
     return result;
 }
-
 // Scale quaternion by float value
-Quaternion QuaternionScale(Quaternion q, float mul)
-{
+Quaternion QuaternionScale(Quaternion q, float mul) {
     Quaternion result = { 0 };
-
     float qax = q.x, qay = q.y, qaz = q.z, qaw = q.w;
-
     result.x = qax*mul + qaw*mul + qay*mul - qaz*mul;
     result.y = qay*mul + qaw*mul + qaz*mul - qax*mul;
     result.z = qaz*mul + qaw*mul + qax*mul - qay*mul;
     result.w = qaw*mul - qax*mul - qay*mul - qaz*mul;
-
-    return result;
-}
-
-// Divide two quaternions
-Quaternion QuaternionDivide(Quaternion q1, Quaternion q2)
-{
-    Quaternion result = { q1.x/q2.x, q1.y/q2.y, q1.z/q2.z, q1.w/q2.w };
-
-    return result;
-}
-
-// Calculate linear interpolation between two quaternions
-Quaternion QuaternionLerp(Quaternion q1, Quaternion q2, float amount)
-{
-    Quaternion result = { 0 };
-
-    result.x = q1.x + amount*(q2.x - q1.x);
-    result.y = q1.y + amount*(q2.y - q1.y);
-    result.z = q1.z + amount*(q2.z - q1.z);
-    result.w = q1.w + amount*(q2.w - q1.w);
-
     return result;
 }
 
@@ -1030,36 +968,28 @@ Quaternion QuaternionFromAxisAngle(Vector3 axis, float angle)
 // Get the rotation angle and axis for a given quaternion
 void QuaternionToAxisAngle(Quaternion q, Vector3 *outAxis, float *outAngle)
 {
-    if (fabs(q.w) > 1.0f)
-    {
+    if (fabs(q.w) > 1.0f) {
         // QuaternionNormalize(q);
         float length = sqrtf(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
         if (length == 0.0f) length = 1.0f;
         float ilength = 1.0f/length;
-
         q.x = q.x*ilength;
         q.y = q.y*ilength;
         q.z = q.z*ilength;
         q.w = q.w*ilength;
     }
-
     Vector3 resAxis = { 0.0f, 0.0f, 0.0f };
     float resAngle = 2.0f*acosf(q.w);
     float den = sqrtf(1.0f - q.w*q.w);
-
-    if (den > 0.0001f)
-    {
+    if (den > 0.0001f) {
         resAxis.x = q.x/den;
         resAxis.y = q.y/den;
         resAxis.z = q.z/den;
-    }
-    else
-    {
+    } else {
         // This occurs when the angle is zero.
         // Not a problem: just set an arbitrary normalized axis.
         resAxis.x = 1.0f;
     }
-
     *outAxis = resAxis;
     *outAngle = resAngle;
 }
@@ -1069,19 +999,16 @@ void QuaternionToAxisAngle(Quaternion q, Vector3 *outAxis, float *outAngle)
 Quaternion QuaternionFromEuler(float pitch, float yaw, float roll)
 {
     Quaternion result = { 0 };
-
     float x0 = cosf(pitch*0.5f);
     float x1 = sinf(pitch*0.5f);
     float y0 = cosf(yaw*0.5f);
     float y1 = sinf(yaw*0.5f);
     float z0 = cosf(roll*0.5f);
     float z1 = sinf(roll*0.5f);
-
     result.x = x1*y0*z0 - x0*y1*z1;
     result.y = x0*y1*z0 + x1*y0*z1;
     result.z = x0*y0*z1 - x1*y1*z0;
     result.w = x0*y0*z0 + x1*y1*z1;
-
     return result;
 }
 
@@ -1090,23 +1017,19 @@ Quaternion QuaternionFromEuler(float pitch, float yaw, float roll)
 Vector3 QuaternionToEuler(Quaternion q)
 {
     Vector3 result = { 0 };
-
     // Roll (x-axis rotation)
     float x0 = 2.0f*(q.w*q.x + q.y*q.z);
     float x1 = 1.0f - 2.0f*(q.x*q.x + q.y*q.y);
     result.x = atan2f(x0, x1);
-
     // Pitch (y-axis rotation)
     float y0 = 2.0f*(q.w*q.y - q.z*q.x);
     y0 = y0 > 1.0f ? 1.0f : y0;
     y0 = y0 < -1.0f ? -1.0f : y0;
     result.y = asinf(y0);
-
     // Yaw (z-axis rotation)
     float z0 = 2.0f*(q.w*q.z + q.x*q.y);
     float z1 = 1.0f - 2.0f*(q.y*q.y + q.z*q.z);
     result.z = atan2f(z0, z1);
-
     return result;
 }
 
@@ -1114,11 +1037,9 @@ Vector3 QuaternionToEuler(Quaternion q)
 Quaternion QuaternionTransform(Quaternion q, Matrix mat)
 {
     Quaternion result = { 0 };
-
     result.x = mat.m0*q.x + mat.m4*q.y + mat.m8*q.z + mat.m12*q.w;
     result.y = mat.m1*q.x + mat.m5*q.y + mat.m9*q.z + mat.m13*q.w;
     result.z = mat.m2*q.x + mat.m6*q.y + mat.m10*q.z + mat.m14*q.w;
     result.w = mat.m3*q.x + mat.m7*q.y + mat.m11*q.z + mat.m15*q.w;
-
     return result;
 }
