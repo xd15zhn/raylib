@@ -10,3 +10,6 @@
 
 # V1.1.7
 - [rcore.c] CHANGED: `SetWindowMonitor`(全屏时窗口能选择建立在哪个显示器上)。
+
+# V1.1.8
+- [rcore.c/rmodels.c/rmath.c] CHANGED: 将坐标系的z轴由向外改为向上。

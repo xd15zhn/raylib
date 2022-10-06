@@ -157,7 +157,7 @@ Matrix MatrixPerspective(double fovy, double aspect, double near, double far);
 Matrix MatrixOrtho(double left, double right, double bottom, double top, double near, double far);
 
 // Get camera look-at matrix (view matrix)
-Matrix MatrixLookAt(Vector3 eye, Vector3 target, Vector3 up);
+Matrix MatrixLookAt(Vector3 position, Vector3 target, Vector3 up);
 
 // Get float array of matrix data
 float16 MatrixToFloatV(Matrix mat);

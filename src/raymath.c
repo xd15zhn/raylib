@@ -678,15 +678,17 @@ Matrix MatrixOrtho(double left, double right, double bottom, double top, double 
 }
 
 // Get camera look-at matrix (view matrix)
-Matrix MatrixLookAt(Vector3 eye, Vector3 target, Vector3 up)
+Matrix MatrixLookAt(Vector3 position, Vector3 target, Vector3 up)
 {
     Matrix result = { 0 };
-    Vector3 vx, vy, vz;
-    vz = (Vector3){ eye.x - target.x, eye.y - target.y, eye.z - target.z };
+    position = (Vector3){ position.x, position.z, -position.y };
+    target   = (Vector3){   target.x,   target.z,   -target.y };
+    up       = (Vector3){       up.x,       up.z,       -up.y };
+    Vector3 vz = (Vector3){ position.x - target.x, position.y - target.y, position.z - target.z };
     vz = Vector3Normalize(vz);
-    vx = Vector3CrossProduct(up, vz);
+    Vector3 vx = Vector3CrossProduct(up, vz);
     vx = Vector3Normalize(vx);
-    vy = Vector3CrossProduct(vz, vx);
+    Vector3 vy = Vector3CrossProduct(vz, vx);
     result.m0 = vx.x;
     result.m1 = vy.x;
     result.m2 = vz.x;
@@ -699,9 +701,9 @@ Matrix MatrixLookAt(Vector3 eye, Vector3 target, Vector3 up)
     result.m9 = vy.z;
     result.m10 = vz.z;
     result.m11 = 0.0f;
-    result.m12 = -Vector3DotProduct(vx, eye);
-    result.m13 = -Vector3DotProduct(vy, eye);
-    result.m14 = -Vector3DotProduct(vz, eye);
+    result.m12 = -Vector3DotProduct(vx, position);
+    result.m13 = -Vector3DotProduct(vy, position);
+    result.m14 = -Vector3DotProduct(vz, position);
     result.m15 = 1.0f;
     return result;
 }
