@@ -1460,7 +1460,8 @@ void DrawModel(Model model, Vector3 position, float scale, Color tint)
 void DrawModelEx(Model model, Vector3 position, Vector3 rotationAxis, float rotationAngle, Vector3 scale, Color tint)
 {
     // Calculate transformation matrix from function parameters
-    Matrix matScale = MatrixScale(scale.x, scale.y, scale.z);
+    Matrix matScale = MatrixScale(scale.x, scale.z, -scale.y);
+    // rotationAxis = (Vector3) { rotationAxis.x, rotationAxis.z, -rotationAxis.y };
     Matrix matRotation = MatrixRotate(rotationAxis, rotationAngle);
     Matrix matTranslation = MatrixTranslate(position.x, position.z, -position.y);
     Matrix matTransform = MatrixMultiply(MatrixMultiply(matScale, matRotation), matTranslation);

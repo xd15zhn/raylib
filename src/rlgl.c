@@ -139,9 +139,6 @@ static rlglData RLGL = { 0 };
 static void rlLoadShaderDefault(void);      // Load default shader
 static void rlUnloadShaderDefault(void);    // Unload default shader
 static int rlGetPixelDataSize(int width, int height, int format);   // Get pixel data size in bytes (image or texture)
-// Auxiliar matrix math functions
-static Matrix rlMatrixIdentity(void);                             // Get identity matrix
-static Matrix rlMatrixMultiply(Matrix left, Matrix right);    // Multiply two matrices
 
 //----------------------------------------------------------------------------------
 // Module Functions Definition - Matrix operations
@@ -152,22 +149,18 @@ void rlMatrixMode(int mode)
 {
     if (mode == RL_PROJECTION) RLGL.State.currentMatrix = &RLGL.State.projection;
     else if (mode == RL_MODELVIEW) RLGL.State.currentMatrix = &RLGL.State.modelview;
-    //else if (mode == RL_TEXTURE) // Not supported
-
     RLGL.State.currentMatrixMode = mode;
 }
 
 // Push the current matrix into RLGL.State.stack
 void rlPushMatrix(void)
 {
-    if (RLGL.State.stackCounter >= RL_MAX_MATRIX_STACK_SIZE) TRACELOG(LOG_ERROR, "RLGL: Matrix stack overflow (RL_MAX_MATRIX_STACK_SIZE)");
-
-    if (RLGL.State.currentMatrixMode == RL_MODELVIEW)
-    {
+    if (RLGL.State.stackCounter >= RL_MAX_MATRIX_STACK_SIZE)
+        TRACELOG(LOG_ERROR, "RLGL: Matrix stack overflow (RL_MAX_MATRIX_STACK_SIZE)");
+    if (RLGL.State.currentMatrixMode == RL_MODELVIEW) {
         RLGL.State.transformRequired = true;
         RLGL.State.currentMatrix = &RLGL.State.transform;
     }
-
     RLGL.State.stack[RLGL.State.stackCounter] = *RLGL.State.currentMatrix;
     RLGL.State.stackCounter++;
 }
@@ -175,99 +168,33 @@ void rlPushMatrix(void)
 // Pop lattest inserted matrix from RLGL.State.stack
 void rlPopMatrix(void)
 {
-    if (RLGL.State.stackCounter > 0)
-    {
+    if (RLGL.State.stackCounter > 0) {
         Matrix mat = RLGL.State.stack[RLGL.State.stackCounter - 1];
         *RLGL.State.currentMatrix = mat;
         RLGL.State.stackCounter--;
     }
-
-    if ((RLGL.State.stackCounter == 0) && (RLGL.State.currentMatrixMode == RL_MODELVIEW))
-    {
+    if ((RLGL.State.stackCounter == 0) && (RLGL.State.currentMatrixMode == RL_MODELVIEW)) {
         RLGL.State.currentMatrix = &RLGL.State.modelview;
         RLGL.State.transformRequired = false;
     }
 }
 
 // Reset current matrix to identity matrix
-void rlLoadIdentity(void)
-{
-    *RLGL.State.currentMatrix = rlMatrixIdentity();
+void rlLoadIdentity(void) {
+    *RLGL.State.currentMatrix = MatrixIdentity();
 }
-
 // Multiply the current matrix by a translation matrix
-void rlTranslatef(float x, float y, float z)
-{
-    Matrix matTranslation = {
-        1.0f, 0.0f, 0.0f, x,
-        0.0f, 1.0f, 0.0f, y,
-        0.0f, 0.0f, 1.0f, z,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
-
-    // NOTE: We transpose matrix with multiplication order
-    *RLGL.State.currentMatrix = rlMatrixMultiply(matTranslation, *RLGL.State.currentMatrix);
+void rlTranslatef(float x, float y, float z) {
+    *RLGL.State.currentMatrix = MatrixMultiply(MatrixTranslate(x, y, z), *RLGL.State.currentMatrix);
 }
-
 // Multiply the current matrix by a rotation matrix
-// NOTE: The provided angle must be in degrees
-void rlRotatef(float angle, float x, float y, float z)
-{
-    Matrix matRotation = rlMatrixIdentity();
-
-    // Axis vector (x, y, z) normalization
-    float lengthSquared = x*x + y*y + z*z;
-    if ((lengthSquared != 1.0f) && (lengthSquared != 0.0f))
-    {
-        float inverseLength = 1.0f/sqrtf(lengthSquared);
-        x *= inverseLength;
-        y *= inverseLength;
-        z *= inverseLength;
-    }
-
-    // Rotation matrix generation
-    float sinres = sinf(DEG2RAD*angle);
-    float cosres = cosf(DEG2RAD*angle);
-    float t = 1.0f - cosres;
-
-    matRotation.m0 = x*x*t + cosres;
-    matRotation.m1 = y*x*t + z*sinres;
-    matRotation.m2 = z*x*t - y*sinres;
-    matRotation.m3 = 0.0f;
-
-    matRotation.m4 = x*y*t - z*sinres;
-    matRotation.m5 = y*y*t + cosres;
-    matRotation.m6 = z*y*t + x*sinres;
-    matRotation.m7 = 0.0f;
-
-    matRotation.m8 = x*z*t + y*sinres;
-    matRotation.m9 = y*z*t - x*sinres;
-    matRotation.m10 = z*z*t + cosres;
-    matRotation.m11 = 0.0f;
-
-    matRotation.m12 = 0.0f;
-    matRotation.m13 = 0.0f;
-    matRotation.m14 = 0.0f;
-    matRotation.m15 = 1.0f;
-
-    // NOTE: We transpose matrix with multiplication order
-    *RLGL.State.currentMatrix = rlMatrixMultiply(matRotation, *RLGL.State.currentMatrix);
+void rlRotatef(float angle, float x, float y, float z) {
+    *RLGL.State.currentMatrix = MatrixMultiply(MatrixRotate((Vector3){x, y, z}, angle), *RLGL.State.currentMatrix);
 }
-
 // Multiply the current matrix by a scaling matrix
-void rlScalef(float x, float y, float z)
-{
-    Matrix matScale = {
-        x, 0.0f, 0.0f, 0.0f,
-        0.0f, y, 0.0f, 0.0f,
-        0.0f, 0.0f, z, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
-
-    // NOTE: We transpose matrix with multiplication order
-    *RLGL.State.currentMatrix = rlMatrixMultiply(matScale, *RLGL.State.currentMatrix);
+void rlScalef(float x, float y, float z) {
+    *RLGL.State.currentMatrix = MatrixMultiply(MatrixScale(x, y, z), *RLGL.State.currentMatrix);
 }
-
 // Multiply the current matrix by another matrix
 void rlMultMatrixf(float *matf)
 {
@@ -276,8 +203,7 @@ void rlMultMatrixf(float *matf)
                    matf[1], matf[5], matf[9], matf[13],
                    matf[2], matf[6], matf[10], matf[14],
                    matf[3], matf[7], matf[11], matf[15] };
-
-    *RLGL.State.currentMatrix = rlMatrixMultiply(*RLGL.State.currentMatrix, mat);
+    *RLGL.State.currentMatrix = MatrixMultiply(*RLGL.State.currentMatrix, mat);
 }
 
 // Multiply the current matrix by a perspective matrix generated by parameters
@@ -309,7 +235,7 @@ void rlFrustum(double left, double right, double bottom, double top, double znea
     matFrustum.m14 = -((float)zfar*(float)znear*2.0f)/fn;
     matFrustum.m15 = 0.0f;
 
-    *RLGL.State.currentMatrix = rlMatrixMultiply(*RLGL.State.currentMatrix, matFrustum);
+    *RLGL.State.currentMatrix = MatrixMultiply(*RLGL.State.currentMatrix, matFrustum);
 }
 
 // Multiply the current matrix by an orthographic matrix generated by parameters
@@ -337,12 +263,11 @@ void rlOrtho(double left, double right, double bottom, double top, double znear,
     matOrtho.m13 = -((float)top + (float)bottom)/tb;
     matOrtho.m14 = -((float)zfar + (float)znear)/fn;
     matOrtho.m15 = 1.0f;
-    *RLGL.State.currentMatrix = rlMatrixMultiply(*RLGL.State.currentMatrix, matOrtho);
+    *RLGL.State.currentMatrix = MatrixMultiply(*RLGL.State.currentMatrix, matOrtho);
 }
 
 // Set the viewport area (transformation from normalized device coordinates to window coordinates)
-void rlViewport(int x, int y, int width, int height)
-{
+void rlViewport(int x, int y, int width, int height) {
     glViewport(x, y, width, height);
 }
 
@@ -830,12 +755,12 @@ void rlglInit(int width, int height)
     RLGL.currentBatch = &RLGL.defaultBatch;
 
     // Init stack matrices (emulating OpenGL 1.1)
-    for (int i = 0; i < RL_MAX_MATRIX_STACK_SIZE; i++) RLGL.State.stack[i] = rlMatrixIdentity();
+    for (int i = 0; i < RL_MAX_MATRIX_STACK_SIZE; i++) RLGL.State.stack[i] = MatrixIdentity();
 
     // Init internal matrices
-    RLGL.State.transform = rlMatrixIdentity();
-    RLGL.State.projection = rlMatrixIdentity();
-    RLGL.State.modelview = rlMatrixIdentity();
+    RLGL.State.transform = MatrixIdentity();
+    RLGL.State.projection = MatrixIdentity();
+    RLGL.State.modelview = MatrixIdentity();
     RLGL.State.currentMatrix = &RLGL.State.modelview;
 
     // Initialize OpenGL default states
@@ -1040,8 +965,8 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
         //batch.draws[i].vaoId = 0;
         //batch.draws[i].shaderId = 0;
         batch.draws[i].textureId = RLGL.State.defaultTextureId;
-        //batch.draws[i].RLGL.State.projection = rlMatrixIdentity();
-        //batch.draws[i].RLGL.State.modelview = rlMatrixIdentity();
+        //batch.draws[i].RLGL.State.projection = MatrixIdentity();
+        //batch.draws[i].RLGL.State.modelview = MatrixIdentity();
     }
     batch.bufferCount = numBuffers;    // Record buffer count
     batch.drawCounter = 1;             // Reset draws counter
@@ -1154,7 +1079,7 @@ void rlDrawRenderBatch(rlRenderBatch *batch)
             rlViewport(eye*RLGL.State.framebufferWidth/2, 0, RLGL.State.framebufferWidth/2, RLGL.State.framebufferHeight);
 
             // Set current eye view offset to modelview matrix
-            rlSetMatrixModelview(rlMatrixMultiply(matModelView, RLGL.State.viewOffsetStereo[eye]));
+            rlSetMatrixModelview(MatrixMultiply(matModelView, RLGL.State.viewOffsetStereo[eye]));
             // Set current eye projection matrix
             rlSetMatrixProjection(RLGL.State.projectionStereo[eye]);
         }
@@ -1166,7 +1091,7 @@ void rlDrawRenderBatch(rlRenderBatch *batch)
             glUseProgram(RLGL.State.currentShaderId);
 
             // Create modelview-projection matrix and upload to shader
-            Matrix matMVP = rlMatrixMultiply(RLGL.State.modelview, RLGL.State.projection);
+            Matrix matMVP = MatrixMultiply(RLGL.State.modelview, RLGL.State.projection);
             float matMVPfloat[16] = {
                 matMVP.m0, matMVP.m1, matMVP.m2, matMVP.m3,
                 matMVP.m4, matMVP.m5, matMVP.m6, matMVP.m7,
@@ -2136,7 +2061,7 @@ void rlSetShader(unsigned int id, int *locs)
 // Get internal modelview matrix
 Matrix rlGetMatrixModelview(void)
 {
-    Matrix matrix = rlMatrixIdentity();
+    Matrix matrix = MatrixIdentity();
     matrix = RLGL.State.modelview;
     return matrix;
 }
@@ -2148,21 +2073,14 @@ Matrix rlGetMatrixProjection(void)
 }
 
 // Get internal accumulated transform matrix
-Matrix rlGetMatrixTransform(void)
-{
-    Matrix mat = rlMatrixIdentity();
-    // TODO: Consider possible transform matrices in the RLGL.State.stack
-    // Is this the right order? or should we start with the first stored matrix instead of the last one?
-    //Matrix matStackTransform = rlMatrixIdentity();
-    //for (int i = RLGL.State.stackCounter; i > 0; i--) matStackTransform = rlMatrixMultiply(RLGL.State.stack[i], matStackTransform);
-    mat = RLGL.State.transform;
-    return mat;
+Matrix rlGetMatrixTransform(void) {
+    return RLGL.State.transform;
 }
 
 // Get internal projection matrix for stereo render (selected eye)
 Matrix rlGetMatrixProjectionStereo(int eye)
 {
-    Matrix mat = rlMatrixIdentity();
+    Matrix mat = MatrixIdentity();
     mat = RLGL.State.projectionStereo[eye];
     return mat;
 }
@@ -2170,7 +2088,7 @@ Matrix rlGetMatrixProjectionStereo(int eye)
 // Get internal view offset matrix for stereo render (selected eye)
 Matrix rlGetMatrixViewOffsetStereo(int eye)
 {
-    Matrix mat = rlMatrixIdentity();
+    Matrix mat = MatrixIdentity();
     mat = RLGL.State.viewOffsetStereo[eye];
     return mat;
 }
@@ -2361,45 +2279,4 @@ static int rlGetPixelDataSize(int width, int height, int format)
     }
 
     return dataSize;
-}
-
-// Auxiliar math functions
-
-// Get identity matrix
-static Matrix rlMatrixIdentity(void)
-{
-    Matrix result = {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
-
-    return result;
-}
-
-// Get two matrix multiplication
-// NOTE: When multiplying matrices... the order matters!
-static Matrix rlMatrixMultiply(Matrix left, Matrix right)
-{
-    Matrix result = { 0 };
-
-    result.m0 = left.m0*right.m0 + left.m1*right.m4 + left.m2*right.m8 + left.m3*right.m12;
-    result.m1 = left.m0*right.m1 + left.m1*right.m5 + left.m2*right.m9 + left.m3*right.m13;
-    result.m2 = left.m0*right.m2 + left.m1*right.m6 + left.m2*right.m10 + left.m3*right.m14;
-    result.m3 = left.m0*right.m3 + left.m1*right.m7 + left.m2*right.m11 + left.m3*right.m15;
-    result.m4 = left.m4*right.m0 + left.m5*right.m4 + left.m6*right.m8 + left.m7*right.m12;
-    result.m5 = left.m4*right.m1 + left.m5*right.m5 + left.m6*right.m9 + left.m7*right.m13;
-    result.m6 = left.m4*right.m2 + left.m5*right.m6 + left.m6*right.m10 + left.m7*right.m14;
-    result.m7 = left.m4*right.m3 + left.m5*right.m7 + left.m6*right.m11 + left.m7*right.m15;
-    result.m8 = left.m8*right.m0 + left.m9*right.m4 + left.m10*right.m8 + left.m11*right.m12;
-    result.m9 = left.m8*right.m1 + left.m9*right.m5 + left.m10*right.m9 + left.m11*right.m13;
-    result.m10 = left.m8*right.m2 + left.m9*right.m6 + left.m10*right.m10 + left.m11*right.m14;
-    result.m11 = left.m8*right.m3 + left.m9*right.m7 + left.m10*right.m11 + left.m11*right.m15;
-    result.m12 = left.m12*right.m0 + left.m13*right.m4 + left.m14*right.m8 + left.m15*right.m12;
-    result.m13 = left.m12*right.m1 + left.m13*right.m5 + left.m14*right.m9 + left.m15*right.m13;
-    result.m14 = left.m12*right.m2 + left.m13*right.m6 + left.m14*right.m10 + left.m15*right.m14;
-    result.m15 = left.m12*right.m3 + left.m13*right.m7 + left.m14*right.m11 + left.m15*right.m15;
-
-    return result;
 }

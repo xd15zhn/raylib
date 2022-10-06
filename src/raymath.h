@@ -104,9 +104,6 @@ Matrix MatrixTranspose(Matrix mat);
 // Invert provided matrix
 Matrix MatrixInvert(Matrix mat);
 
-// Normalize provided matrix
-Matrix MatrixNormalize(Matrix mat);
-
 // Get identity matrix
 Matrix MatrixIdentity(void);
 

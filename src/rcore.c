@@ -700,7 +700,6 @@ void BeginMode3D(Camera3D camera)
     rlFrustum(-right, right, -top, top, RL_CULL_DISTANCE_NEAR, RL_CULL_DISTANCE_FAR);
     rlMatrixMode(RL_MODELVIEW);     // Switch back to modelview matrix
     rlLoadIdentity();               // Reset current matrix (modelview)
-
     Matrix matView = MatrixLookAt(camera.position, camera.target, camera.up);  // Setup Camera view
     rlMultMatrixf(MatrixToFloat(matView));      // Multiply modelview matrix by view matrix (camera)
     rlEnableDepthTest();            // Enable DEPTH_TEST for 3D
