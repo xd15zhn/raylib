@@ -1,0 +1,9 @@
+set(PACKAGE_NAME @PROJECT_NAME@)
+set(raylib_VERSION @raylib_VERSION_MAJOR@.@raylib_VERSION_MINOR@.@raylib_VERSION_PATCH@)
+set(raylib_LIBS
+    @CMAKE_INSTALL_PREFIX@/lib/libraylib.a
+    @CMAKE_INSTALL_PREFIX@/lib/libglfw3.a
+    @tracelog_LIBS@
+    winmm
+)
+set(raylib_INCLUDE_DIRS @CMAKE_INSTALL_PREFIX@/include/)
