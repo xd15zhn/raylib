@@ -93,13 +93,10 @@ void Vector3OrthoNormalize(Vector3 *v1, Vector3 *v2)
 // Transforms a Vector3 by a given Matrix
 Vector3 Vector3Transform(Vector3 v, Matrix mat)
 {
-    Vector3 result = { 0 };
-    float x = v.x;
-    float y = v.y;
-    float z = v.z;
-    result.x = mat.m0*x + mat.m4*y + mat.m8*z + mat.m12;
-    result.y = mat.m1*x + mat.m5*y + mat.m9*z + mat.m13;
-    result.z = mat.m2*x + mat.m6*y + mat.m10*z + mat.m14;
+    Vector3 result;
+    result.x = mat.m0*v.x + mat.m4*v.y + mat.m8 *v.z + mat.m12;
+    result.y = mat.m1*v.x + mat.m5*v.y + mat.m9 *v.z + mat.m13;
+    result.z = mat.m2*v.x + mat.m6*v.y + mat.m10*v.z + mat.m14;
     return result;
 }
 
@@ -113,124 +110,6 @@ Vector3 Vector3RotateByQuaternion(Vector3 v, Quaternion q)
     return result;
 }
 
-// Calculate reflected vector to normal
-Vector3 Vector3Reflect(Vector3 v, Vector3 normal)
-{
-    Vector3 result = { 0 };
-    // I is the original vector
-    // N is the normal of the incident plane
-    // R = I - (2*N*(DotProduct[I, N]))
-    float dotProduct = (v.x*normal.x + v.y*normal.y + v.z*normal.z);
-    result.x = v.x - (2.0f*normal.x)*dotProduct;
-    result.y = v.y - (2.0f*normal.y)*dotProduct;
-    result.z = v.z - (2.0f*normal.z)*dotProduct;
-    return result;
-}
-
-// Compute barycenter coordinates (u, v, w) for point p with respect to triangle (a, b, c)
-// NOTE: Assumes P is on the plane of the triangle
-Vector3 Vector3Barycenter(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
-{
-    Vector3 result = { 0 };
-    Vector3 v0 = { b.x - a.x, b.y - a.y, b.z - a.z };   // Vector3Subtract(b, a)
-    Vector3 v1 = { c.x - a.x, c.y - a.y, c.z - a.z };   // Vector3Subtract(c, a)
-    Vector3 v2 = { p.x - a.x, p.y - a.y, p.z - a.z };   // Vector3Subtract(p, a)
-    float d00 = (v0.x*v0.x + v0.y*v0.y + v0.z*v0.z);    // Vector3DotProduct(v0, v0)
-    float d01 = (v0.x*v1.x + v0.y*v1.y + v0.z*v1.z);    // Vector3DotProduct(v0, v1)
-    float d11 = (v1.x*v1.x + v1.y*v1.y + v1.z*v1.z);    // Vector3DotProduct(v1, v1)
-    float d20 = (v2.x*v0.x + v2.y*v0.y + v2.z*v0.z);    // Vector3DotProduct(v2, v0)
-    float d21 = (v2.x*v1.x + v2.y*v1.y + v2.z*v1.z);    // Vector3DotProduct(v2, v1)
-    float denom = d00*d11 - d01*d01;
-    result.y = (d11*d20 - d01*d21)/denom;
-    result.z = (d00*d21 - d01*d20)/denom;
-    result.x = 1.0f - (result.z + result.y);
-    return result;
-}
-
-// Projects a Vector3 from screen space into object space
-// NOTE: We are avoiding calling other raymath functions despite available
-Vector3 Vector3Unproject(Vector3 source, Matrix projection, Matrix view)
-{
-    Vector3 result = { 0 };
-
-    // Calculate unproject matrix (multiply view patrix by projection matrix) and invert it
-    Matrix matViewProj = {      // MatrixMultiply(view, projection);
-        view.m0*projection.m0 + view.m1*projection.m4 + view.m2*projection.m8 + view.m3*projection.m12,
-        view.m0*projection.m1 + view.m1*projection.m5 + view.m2*projection.m9 + view.m3*projection.m13,
-        view.m0*projection.m2 + view.m1*projection.m6 + view.m2*projection.m10 + view.m3*projection.m14,
-        view.m0*projection.m3 + view.m1*projection.m7 + view.m2*projection.m11 + view.m3*projection.m15,
-        view.m4*projection.m0 + view.m5*projection.m4 + view.m6*projection.m8 + view.m7*projection.m12,
-        view.m4*projection.m1 + view.m5*projection.m5 + view.m6*projection.m9 + view.m7*projection.m13,
-        view.m4*projection.m2 + view.m5*projection.m6 + view.m6*projection.m10 + view.m7*projection.m14,
-        view.m4*projection.m3 + view.m5*projection.m7 + view.m6*projection.m11 + view.m7*projection.m15,
-        view.m8*projection.m0 + view.m9*projection.m4 + view.m10*projection.m8 + view.m11*projection.m12,
-        view.m8*projection.m1 + view.m9*projection.m5 + view.m10*projection.m9 + view.m11*projection.m13,
-        view.m8*projection.m2 + view.m9*projection.m6 + view.m10*projection.m10 + view.m11*projection.m14,
-        view.m8*projection.m3 + view.m9*projection.m7 + view.m10*projection.m11 + view.m11*projection.m15,
-        view.m12*projection.m0 + view.m13*projection.m4 + view.m14*projection.m8 + view.m15*projection.m12,
-        view.m12*projection.m1 + view.m13*projection.m5 + view.m14*projection.m9 + view.m15*projection.m13,
-        view.m12*projection.m2 + view.m13*projection.m6 + view.m14*projection.m10 + view.m15*projection.m14,
-        view.m12*projection.m3 + view.m13*projection.m7 + view.m14*projection.m11 + view.m15*projection.m15 };
-
-    // Calculate inverted matrix -> MatrixInvert(matViewProj);
-    // Cache the matrix values (speed optimization)
-    float a00 = matViewProj.m0, a01 = matViewProj.m1, a02 = matViewProj.m2, a03 = matViewProj.m3;
-    float a10 = matViewProj.m4, a11 = matViewProj.m5, a12 = matViewProj.m6, a13 = matViewProj.m7;
-    float a20 = matViewProj.m8, a21 = matViewProj.m9, a22 = matViewProj.m10, a23 = matViewProj.m11;
-    float a30 = matViewProj.m12, a31 = matViewProj.m13, a32 = matViewProj.m14, a33 = matViewProj.m15;
-
-    float b00 = a00*a11 - a01*a10;
-    float b01 = a00*a12 - a02*a10;
-    float b02 = a00*a13 - a03*a10;
-    float b03 = a01*a12 - a02*a11;
-    float b04 = a01*a13 - a03*a11;
-    float b05 = a02*a13 - a03*a12;
-    float b06 = a20*a31 - a21*a30;
-    float b07 = a20*a32 - a22*a30;
-    float b08 = a20*a33 - a23*a30;
-    float b09 = a21*a32 - a22*a31;
-    float b10 = a21*a33 - a23*a31;
-    float b11 = a22*a33 - a23*a32;
-
-    // Calculate the invert determinant (inlined to avoid double-caching)
-    float invDet = 1.0f/(b00*b11 - b01*b10 + b02*b09 + b03*b08 - b04*b07 + b05*b06);
-
-    Matrix matViewProjInv = {
-        (a11*b11 - a12*b10 + a13*b09)*invDet,
-        (-a01*b11 + a02*b10 - a03*b09)*invDet,
-        (a31*b05 - a32*b04 + a33*b03)*invDet,
-        (-a21*b05 + a22*b04 - a23*b03)*invDet,
-        (-a10*b11 + a12*b08 - a13*b07)*invDet,
-        (a00*b11 - a02*b08 + a03*b07)*invDet,
-        (-a30*b05 + a32*b02 - a33*b01)*invDet,
-        (a20*b05 - a22*b02 + a23*b01)*invDet,
-        (a10*b10 - a11*b08 + a13*b06)*invDet,
-        (-a00*b10 + a01*b08 - a03*b06)*invDet,
-        (a30*b04 - a31*b02 + a33*b00)*invDet,
-        (-a20*b04 + a21*b02 - a23*b00)*invDet,
-        (-a10*b09 + a11*b07 - a12*b06)*invDet,
-        (a00*b09 - a01*b07 + a02*b06)*invDet,
-        (-a30*b03 + a31*b01 - a32*b00)*invDet,
-        (a20*b03 - a21*b01 + a22*b00)*invDet };
-
-    // Create quaternion from source point
-    Quaternion quat = { source.x, source.y, source.z, 1.0f };
-
-    // Multiply quat point by unproject matrix
-    Quaternion qtransformed = {     // QuaternionTransform(quat, matViewProjInv)
-        matViewProjInv.m0*quat.x + matViewProjInv.m4*quat.y + matViewProjInv.m8*quat.z + matViewProjInv.m12*quat.w,
-        matViewProjInv.m1*quat.x + matViewProjInv.m5*quat.y + matViewProjInv.m9*quat.z + matViewProjInv.m13*quat.w,
-        matViewProjInv.m2*quat.x + matViewProjInv.m6*quat.y + matViewProjInv.m10*quat.z + matViewProjInv.m14*quat.w,
-        matViewProjInv.m3*quat.x + matViewProjInv.m7*quat.y + matViewProjInv.m11*quat.z + matViewProjInv.m15*quat.w };
-
-    // Normalized world points in vectors
-    result.x = qtransformed.x/qtransformed.w;
-    result.y = qtransformed.y/qtransformed.w;
-    result.z = qtransformed.z/qtransformed.w;
-
-    return result;
-}
-
 // Get Vector3 as float array
 float3 Vector3ToFloatV(Vector3 v)
 {
@@ -240,23 +119,6 @@ float3 Vector3ToFloatV(Vector3 v)
 //----------------------------------------------------------------------------------
 // Module Functions Definition - Matrix math
 //----------------------------------------------------------------------------------
-
-// Compute matrix determinant
-float MatrixDeterminant(Matrix mat)
-{
-    // Cache the matrix values (speed optimization)
-    float a00 = mat.m0, a01 = mat.m1, a02 = mat.m2, a03 = mat.m3;
-    float a10 = mat.m4, a11 = mat.m5, a12 = mat.m6, a13 = mat.m7;
-    float a20 = mat.m8, a21 = mat.m9, a22 = mat.m10, a23 = mat.m11;
-    float a30 = mat.m12, a31 = mat.m13, a32 = mat.m14, a33 = mat.m15;
-
-    return a30*a21*a12*a03 - a20*a31*a12*a03 - a30*a11*a22*a03 + a10*a31*a22*a03 +
-           a20*a11*a32*a03 - a10*a21*a32*a03 - a30*a21*a02*a13 + a20*a31*a02*a13 +
-           a30*a01*a22*a13 - a00*a31*a22*a13 - a20*a01*a32*a13 + a00*a21*a32*a13 +
-           a30*a11*a02*a23 - a10*a31*a02*a23 - a30*a01*a12*a23 + a00*a31*a12*a23 +
-           a10*a01*a32*a23 - a00*a11*a32*a23 - a20*a11*a02*a33 + a10*a21*a02*a33 +
-           a20*a01*a12*a33 - a00*a21*a12*a33 - a10*a01*a22*a33 + a00*a11*a22*a33;
-}
 
 // Transposes provided matrix
 Matrix MatrixTranspose(Matrix mat)

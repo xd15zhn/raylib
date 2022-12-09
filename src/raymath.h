@@ -77,26 +77,12 @@ Vector3 Vector3Transform(Vector3 v, Matrix mat);
 // Transform a vector by quaternion rotation
 Vector3 Vector3RotateByQuaternion(Vector3 v, Quaternion q);
 
-// Calculate reflected vector to normal
-Vector3 Vector3Reflect(Vector3 v, Vector3 normal);
-
-// Compute barycenter coordinates (u, v, w) for point p with respect to triangle (a, b, c)
-// NOTE: Assumes P is on the plane of the triangle
-Vector3 Vector3Barycenter(Vector3 p, Vector3 a, Vector3 b, Vector3 c);
-
-// Projects a Vector3 from screen space into object space
-// NOTE: We are avoiding calling other raymath functions despite available
-Vector3 Vector3Unproject(Vector3 source, Matrix projection, Matrix view);
-
 // Get Vector3 as float array
 float3 Vector3ToFloatV(Vector3 v);
 
 //----------------------------------------------------------------------------------
 // Module Functions Definition - Matrix math
 //----------------------------------------------------------------------------------
-
-// Compute matrix determinant
-float MatrixDeterminant(Matrix mat);
 
 // Transposes provided matrix
 Matrix MatrixTranspose(Matrix mat);
